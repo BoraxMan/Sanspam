@@ -14,12 +14,20 @@ import spaminexexception;
 import mailbox;
 import message;
 import processline;
+import ui;
 
 
 int main()
 {
   init;
-  initscr;
+
+  initCurses;
+  refresh;
+  auto headerWindow = create_newwin(LINES-3,COLS,0,0,ColourPairs.MainBorder, ColourPairs.StatusText,"--== SPAMINEX ==--");
+  auto statusWindow = create_newwin(3,COLS,LINES-3,0,ColourPairs.a,ColourPairs.a,"STATUS");
+
+  getch;
+
   scope(exit) {
     endwin;
   }
