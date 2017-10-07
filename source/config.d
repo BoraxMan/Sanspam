@@ -112,7 +112,6 @@ size_t readConf(ref File file)
 	}
 	item = item.chomp("]");
 	item = item.chompPrefix("[");
-	writeln(item);
 	currentConfig = new Config(item);
       } else {
 	processLine(item);

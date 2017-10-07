@@ -50,7 +50,7 @@ struct Messages
   auto opIndex(int n)
     in
       {
-	assert(n < m_messages.length);
+	assert(n <= m_messages.length);
       }
   body
     {    
@@ -108,6 +108,20 @@ private:
   
 public:
   
+  auto opApply(int delegate(ref Message) operations) {
+    int result;
+    for (int x = 1; x <= m_messages.length; x++) {
+      Message m = m_messages[x];
+      result = operations(m);
+      
+      if (result) {
+	break;
+      }
+    }
+    return result;
+  }
+  
+  
   @property size_t size() @safe const
   {
     return m_messages.length;
@@ -149,8 +163,7 @@ public:
     }
 
     ProcessMessageData pmd = new ProcessMessageData();
-      
-    writeln(m_mailboxSize);
+
     for(int x = 1; x <= m_mailboxSize; x++)
       {
 	Message m;
@@ -163,7 +176,6 @@ public:
 	
 	if(m_supportUIDL) {
 	  m.uidl = getUIDL(x);
-	  writeln(m.uidl);
 	}
 	m_messages.add(m);
 

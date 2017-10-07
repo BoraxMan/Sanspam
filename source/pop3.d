@@ -80,7 +80,6 @@ public:
       response.contents = message.chompPrefix(ERROR);
     }
     import std.stdio;
-    writeln("RESPONSE :", response.contents);
     return response;
   }
 

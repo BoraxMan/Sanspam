@@ -37,7 +37,7 @@ public:
 	m_UnfoldedText~=newstring;
       }
     // Add end line back on.
-    m_UnfoldedText~="\r\n";
+    //m_UnfoldedText~="\r\n";
     return m_UnfoldedText;
   }
 }
