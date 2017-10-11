@@ -53,7 +53,7 @@ unittest
 
   u.addLine(text2);
   auto result2 = u.unfolded;
-  assert(result2 == "A single line message.\r\n");
+  assert(result2 == "A single line message.");
   u.clear;
   assert(u.length == 0);
 
@@ -61,7 +61,7 @@ unittest
   u.addLine(text32);
   u.addLine(text33);
   auto result3 = u.unfolded;
-  assert(result3 == "A multline message on multiple lines.\r\n");  
+  assert(result3 == "A multline message on multiple lines.");  
 }
 
 

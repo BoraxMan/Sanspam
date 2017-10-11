@@ -169,17 +169,17 @@ private:
   string m_configTitle;
 
 public:
-  @property string title() const @safe nothrow pure
+  final @property string title() const @safe nothrow pure
   {
     return m_configTitle;
   }
   
-  this(in char[] title) @safe nothrow
+  final this(in char[] title) @safe nothrow
   {
     m_configTitle = title.to!string;
   }
   
-  void modify(string key, string value = "") @safe nothrow
+  final void modify(string key, string value = "") @safe nothrow
   {
     /* If value is "", then delete.
        A key can be deleted by not specifiying a value. */
@@ -194,7 +194,7 @@ public:
       m_configOption[key] = value;
     }
   }
-  bool hasSetting(in string key) const @safe nothrow pure
+  final bool hasSetting(in string key) const @safe nothrow pure
   {
     const string *p = (key in m_configOption);
     if (p !is null) {
@@ -204,7 +204,7 @@ public:
     }
   }
 
-  string getSetting(in string key) const @safe pure
+  final string getSetting(in string key) const @safe pure
   {
     if(hasSetting(key)) {
       return m_configOption[key];

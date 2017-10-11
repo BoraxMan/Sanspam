@@ -1,4 +1,6 @@
+import imapmailbox;
 import deimos.ncurses;
+import deimos.ncurses.menu;
 import std.array;
 import std.conv;
 import std.stdio;
@@ -14,9 +16,12 @@ import ui;
 int main()
 {
   init;
+  /*
+  init;
 
   initCurses;
-
+  cbreak;
+  noecho;
   scope(exit) {
     endwin;
   }
@@ -27,18 +32,17 @@ int main()
   auto accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account");
 
   auto xx = configurations.byKey();
-    int ypos = 1;
-
+  int ypos = 1;
+  MENU* mailboxMenu;
+  ITEM*[] mailboxes;
+  ITEM* currentItem;
   foreach(c; xx) {
-    mvwprintw(accountSelectionWindow, ypos++,1,c.to!string.toStringz);
+    mailboxes~=new_item(c.to!string.toStringz,c.to!string.toStringz);
   }
-    wrefresh(accountSelectionWindow);
-    
-
-  getch;
-
+  //    mvwprintw(accountSelectionWindow, ypos++,1,c.to!string.toStringz);
+  wrefresh(accountSelectionWindow);
   
-    foreach(c; xx) {
+  foreach(c; xx) {
     Mailbox mailbox;
     try {
       writeln();
@@ -61,6 +65,9 @@ int main()
     }
     mailbox.close;    
   }
+  */
+  Mailbox mailbox = new Mailbox("iinet");
+  mailbox.login;
   return 0;
 }
 

@@ -1,14 +1,16 @@
-
 {
-	"name": "spaminex",
-	"authors": [
-		"Dennis Katsonis"
-	],
-	"dependencies": {
-	    "ncurses": "~master",
-	    
-	},
-	"description": "Simple mailbox cleaning tool.",
-	"copyright": "Copyright © 2017, Dennis Katsonis",
-	"license": "GPL v2"
+    "name": "spaminex",
+    "authors": [
+	"Dennis Katsonis"
+    ],
+    "dependencies": {
+        "ncurses": "*"
+    },
+    "subConfigurations": {
+        "ncurses": "full"
+    },
+
+    "description": "Simple mailbox cleaning tool.",
+    "copyright": "Copyright © 2017, Dennis Katsonis",
+    "license": "GPL v2"
 }
