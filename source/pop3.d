@@ -194,7 +194,7 @@ public:
     return true;
   }
  
-  final bool loadMessages() @safe
+  override final bool loadMessages() @safe
   {
     if (m_mailboxSize == 0) {
       return true;
@@ -220,6 +220,17 @@ public:
       }
     return true;
   }
+
+
+  override final void selectFolder(in ref Folder folder) @safe
+  {
+    return;
+  }
   
 
+  override final FolderList folderList() @safe
+  {
+    return m_folderList;
+  }
+  
 }

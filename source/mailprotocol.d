@@ -1,4 +1,5 @@
 // Super class for Mail protocol handling.
+import processline;
 import std.typecons : Tuple;
 import socket;
 import std.string;
@@ -11,6 +12,17 @@ alias queryResponse = Tuple!(bool, "isValid", string, "contents");
 
 struct Encrypted {} // May get implemented later.
 struct ConfigOption {} // May be used later.
+
+alias string[] flaglist;
+alias string[] capabilities;
+alias Folder[] FolderList;
+
+struct Folder {
+  flaglist flags;
+  string quotedchar;
+  string name;
+}
+  
 
 struct Messages
 { /* The only real purpose of this struct is to use a numbering system which coincides with
@@ -81,16 +93,19 @@ class MailProtocol
   string endline = "\r\n";
   char[65536] m_buffer;
   string[] m_capabilities;
+  FolderList m_folderList;
   
 public:
   abstract bool login(in string username, in string password) @safe;
   abstract string getUID(in int messageNumber) @safe;
-
+  abstract FolderList folderList() @safe;
+  abstract bool loadMessages() @safe;
+  abstract void selectFolder(in ref Folder folder) @safe;
+  
   void close() @safe
   {
     m_socket.close;
   }
 
 }
-
 

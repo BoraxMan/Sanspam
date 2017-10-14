@@ -9,7 +9,6 @@ public import imap;
 import config;
 import mailprotocol;
 
-
 class Mailbox
 {
 private:
@@ -40,6 +39,7 @@ public:
 
   final this(in string mboxName) @safe
   {
+    writeln(mboxName);
     m_config = getConfig(mboxName);
     auto port = m_config.getSetting("port").to!ushort;
     auto type = m_config.getSetting("type");
@@ -54,6 +54,11 @@ public:
     }
   }
 
+  final void selectFolder(in ref Folder folder) @safe
+  {
+    return m_connection.selectFolder(folder);
+  }
+  
   final ~this()
   {
     destroy(m_connection);
@@ -63,9 +68,12 @@ public:
      wants to delete for sure.
   */
 
-
   
-
+  FolderList folderList() @safe
+  {
+    return m_connection.folderList;
+  }
+  
   final bool login()
   {
     auto username = m_config.getSetting("username");

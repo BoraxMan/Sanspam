@@ -1,4 +1,4 @@
-import imapmailbox;
+import mailprotocol;
 import deimos.ncurses;
 import deimos.ncurses.menu;
 import std.array;
@@ -68,6 +68,10 @@ int main()
   */
   Mailbox mailbox = new Mailbox("iinet");
   mailbox.login;
+  FolderList f = mailbox.folderList;
+  writeln(f);
+  mailbox.selectFolder(f[0]);
+
   return 0;
 }
 
