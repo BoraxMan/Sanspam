@@ -29,6 +29,7 @@ private:
   }
   
 public:
+  this() {}
 
   final this(in string server, in ushort port) @safe
   {
@@ -45,7 +46,6 @@ public:
       destroy(m_socket);
     }
   }
-
 
 
   override final string getUID(in int messageNumber) @safe
@@ -97,7 +97,7 @@ public:
     return false;
   }
   
-  final queryResponse query(in string command, bool multiline = false) @safe 
+  override final queryResponse query(in string command, bool multiline = false) @safe 
   {
     queryResponse response;
     m_socket.send(command~endline);
@@ -117,56 +117,26 @@ public:
     return response;
   }
 
-
-  final bool remove(in int messageNumber, in string uidl = "")
-    in
-      {
-	assert (messageNumber > 0);
-      }
-      
-  body {
-    string thisUID;
-    /*  Lets double check to make sure that the message we are deleting is the one
-	we want to delete.
-	We will get the UID again and compare against the string provided, if one exists.
-	This makes sure that we don't delete the wrong message, in case something else has happened which
-	has changed the mailbox since this program was started.
-    */
-    
-    
-    if (m_supportUID) {
-      thisUID = getUID(messageNumber);
-      writeln(thisUID, ":", uidl);
-      if (uidl.length > 0) {
-	if (thisUID != uidl) {
-	  throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~thisUID~" instead.");
-	}
-      }
-    }
-    // If we got this far, we don't have a UID to check against, or the check passed.  So delete the message.
-    string messageQuery = "DELE "~messageNumber.to!string;
-    writeln("Deleting message ", messageNumber, " with UID ", thisUID);
-    auto response = query(messageQuery);
-    if (response.isValid) {
-      m_messages[messageNumber-1].deleted = true;
-    }
-    return response.isValid;
-  }
-  
-  final bool remove(in string uidl)
+    override final string getQueryFormat(Command command) @safe pure
   {
-    bool result;
-    int x;
-    // Search its position in the mailbox.
-    foreach(m; m_messages) {
-      x++;
-      writeln(x);
-      if (m.uidl == uidl) {
-	result = remove(x, m.uidl);
+    string commandText;
+    
+    switch(command)
+      {
+      case Command.Delete:
+	commandText = "DELE %d";
+	break;
+      case Command.Close:
+	commandText = "QUIT";
+	break;
+      case Command.Logout:
+	commandText = "LOGOUT";
+	break;
+      default:
+	break;
+	
       }
-    }
-      
-    return result;
+    return commandText;
   }
 
 
@@ -184,21 +154,13 @@ public:
 
   }
 
-  final bool close() @safe
-  {
-    immutable string messageQuery = "QUIT";
-    immutable auto response = query(messageQuery);
-    if (response.isValid == false) {
-      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
-    }
-    return true;
-  }
- 
   override final bool loadMessages() @safe
   {
     if (m_mailboxSize == 0) {
       return true;
     }
+
+    m_messages.clear; // We load all again.  Clear any existing messages.
 
     ProcessMessageData pmd = new ProcessMessageData();
 
@@ -233,4 +195,12 @@ public:
     return m_folderList;
   }
   
+}
+
+unittest
+{
+  MailProtocol d = new Pop3;
+  assert(insertValue(d.getQueryFormat(Command.Delete),4) == "DELE 4");
+  assert(d.getQueryFormat(Command.Logout) == "LOGOUT");
+  assert(d.getQueryFormat(Command.Close) == "QUIT");
 }

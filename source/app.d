@@ -15,8 +15,7 @@ import ui;
 
 int main()
 {
-  init;
-  /*
+
   init;
 
   initCurses;
@@ -25,6 +24,7 @@ int main()
   scope(exit) {
     endwin;
   }
+  keypad(stdscr,true);
 
   refresh;
   auto headerWindow = create_newwin(LINES-3,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--");
@@ -36,12 +36,49 @@ int main()
   MENU* mailboxMenu;
   ITEM*[] mailboxes;
   ITEM* currentItem;
-  foreach(c; xx) {
-    mailboxes~=new_item(c.to!string.toStringz,c.to!string.toStringz);
+  int c;
+  foreach(conf; xx) {
+    //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
+    mailboxes~=new_item(conf.to!string.toStringz,"".toStringz);
+
   }
+  mailboxMenu = new_menu(mailboxes.ptr);
+  set_menu_win(mailboxMenu, accountSelectionWindow);
+  set_menu_sub(mailboxMenu,derwin(accountSelectionWindow,6,38,3,1));
+  set_menu_mark(mailboxMenu," * ");
+  keypad(accountSelectionWindow,true);
+  post_menu(mailboxMenu);
+  
   //    mvwprintw(accountSelectionWindow, ypos++,1,c.to!string.toStringz);
   wrefresh(accountSelectionWindow);
-  
+  refresh;
+
+  while ((c = wgetch(accountSelectionWindow)) != KEY_F(1))
+    {
+      switch (c)
+        {
+        case KEY_DOWN:
+            menu_driver(mailboxMenu, REQ_DOWN_ITEM);
+            break;
+        case KEY_UP:
+            menu_driver(mailboxMenu, REQ_UP_ITEM);
+            break;
+        case KEY_NPAGE:
+            menu_driver(mailboxMenu, REQ_SCR_DPAGE);
+            break;
+        case KEY_PPAGE:
+            menu_driver(mailboxMenu, REQ_SCR_UPAGE);
+            break;
+        default:
+            break;
+        }
+        wrefresh(accountSelectionWindow);
+    }
+
+
+  getch;
+  /*
+    
   foreach(c; xx) {
     Mailbox mailbox;
     try {
@@ -66,12 +103,19 @@ int main()
     mailbox.close;    
   }
   */
+  /*
   Mailbox mailbox = new Mailbox("iinet");
   mailbox.login;
   FolderList f = mailbox.folderList;
   writeln(f);
   mailbox.selectFolder(f[0]);
-
+  mailbox.loadMessages;
+  foreach(a; mailbox)
+    {
+      write(a.subject," ", a.from);
+      writeln;
+      
+    }*/
   return 0;
 }
 

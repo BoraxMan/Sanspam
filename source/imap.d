@@ -2,17 +2,22 @@ import std.stdio;
 import std.conv;
 import std.typecons : Tuple;
 import std.string;
+import std.format;
+import std.array;
+import std.exception;
 import imapparse;
 import socket;
 import mailprotocol;
+import message;
+import processline;
 import spaminexexception;
-import std.exception;
 import exceptionhandler;
 
 immutable string seen = "\\Seen";
 immutable string answered = "\\Answered";
 immutable string deleted = "\\Deleted";
 immutable string recent = "\\Recent";
+
 immutable string prefix = "Spaminex";
 
 alias queryResponse = Tuple!(bool, "isValid", string, "contents");
@@ -48,6 +53,8 @@ private:
       }
     return response;
   }
+
+
   
   final bool evaluateMessage(in string message, in string commandPrefix) const @safe
   {
@@ -66,6 +73,8 @@ private:
 
 
 public:
+
+  this(){}
   
   this(in string server, in ushort port) @safe 
   {
@@ -83,6 +92,31 @@ public:
       return false;
     return true;
   }
+
+  override final string getQueryFormat(Command command) @safe pure
+  {
+    string commandText;
+    
+    switch(command)
+      {
+      case Command.Delete:
+	commandText = "STORE %d +FLAGS (\\Deleted)";
+	break;
+      case Command.Close:
+	commandText = "EXPUNGE";
+	break;
+      case Command.Logout:
+	commandText = "LOGOUT";
+	break;
+      case Command.Copy:
+	commandText = "COPY %d %s";
+	break;
+      default:
+	break;
+      }
+    return commandText;
+  }
+
 
   override final FolderList folderList() @safe
   {
@@ -102,11 +136,15 @@ public:
     return;
   }
 
+
+  
   override final bool loadMessages() @safe
   {
     if (m_mailboxSize == 0) {
       return true;
     }
+
+    m_messages.clear; // We load all again.  Clear any existing messages.
 
     ProcessMessageData pmd = new ProcessMessageData();
 
@@ -114,19 +152,19 @@ public:
       {
 	Message m;
 	string messageQuery = "FETCH "~x.to!string~" BODY[HEADER]";
-	immutable auto response = query(messageQuery,true);
+	immutable queryResponse response = query(messageQuery,false);
+
 	if (response.isValid == false) {
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	m = pmd.messageFactory(response.contents);
-
 	messageQuery = "FETCH "~x.to!string~" UID";
-	immutable auto response = query(messageQuery,true);
+	auto response2 = query(messageQuery,false);
 	if (response.isValid == false) {
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
-
-	string uid = parseUID(response.contents);
+	string uid = parseUID(response2.contents);
+	writeln(response2.contents);
 	writeln("UID ", uid);
 
 	
@@ -140,9 +178,7 @@ public:
   override final void selectFolder(in ref Folder folder) @safe
   {
     queryResponse response;
-    writeln(folder.name);
     response = query("SELECT "~folder.name);
-    writeln(response.contents);
 
     if(!response.isValid) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
@@ -160,8 +196,9 @@ public:
     writeln(m_mailboxSize);
     return;
   }
-		  
-  final queryResponse query(in string command, bool multiline = false) @safe
+
+  
+  override final queryResponse query(in string command, bool multiline = false) @safe
   {
     queryResponse response;
     m_socket.send(prefix()~command~endline);
@@ -185,11 +222,17 @@ public:
   {
     return "";
   }
+
 }
 
 unittest
 {
+  MailProtocol d = new IMAP;
   commandPrefix p;
   assert(p() == "Spaminex1 ");
   assert(p() == "Spaminex2 ");
+  assert(insertValueAndString(d.getQueryFormat(Command.Copy),4,"TEST") == "COPY 4 TEST");
+  assert(insertValue(d.getQueryFormat(Command.Delete),4) == "STORE 4 +FLAGS (\\Deleted)");
+  assert(d.getQueryFormat(Command.Logout) == "LOGOUT");
+
 }

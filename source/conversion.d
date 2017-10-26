@@ -44,7 +44,7 @@ textEncodingType getCharsetTypeEncodingType(in string text) @safe pure
   if (text[first+1].toUpper == 'Q')
     te.encoding = encodingType.ASCII;
   else if (text[first+1].toUpper == 'B')
-    te.encoding = encodingType.BASE64;
+     te.encoding = encodingType.BASE64;
   else
     te.encoding = encodingType.ASCII;
 

@@ -68,6 +68,11 @@ public:
      wants to delete for sure.
   */
 
+
+  void loadMessages()
+  {
+    m_connection.loadMessages;
+  }
   
   FolderList folderList() @safe
   {

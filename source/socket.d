@@ -41,7 +41,6 @@ public:
 
   bool send(in string message) @safe
   {
-    writeln("SENDING :", message);
     try {
       m_socket.send(message);
     } catch (SocketException e) {

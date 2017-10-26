@@ -23,9 +23,10 @@ capabilities parse_capability_list(in string response) @safe pure
 
 string parseUID(in string response) @safe pure
 {
-  auto text = parenthesisContents(response,'(',')');
+  size_t pos;
+  auto text = parenthesisContents(response,'(',')', pos);
   auto s = text.split;
-  return text[1];
+  return text[1].to!string;
 }
   
 flaglist parse_flag_list(in string response) @safe pure

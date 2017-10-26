@@ -76,7 +76,7 @@ public:
 	part = messageComponents.Unknown;
 	return;
       } else {
-	// We will proess it
+	// We will process it
 	part = newType;
 	writeln(text);
 	currentMessagePart.unfolder.addLine(text[(currentMessagePart.label.length)..$]);
