@@ -78,7 +78,6 @@ public:
       } else {
 	// We will process it
 	part = newType;
-	writeln(text);
 	currentMessagePart.unfolder.addLine(text[(currentMessagePart.label.length)..$]);
       }
     } else if ((part != messageComponents.Unknown) && (!text.startsWith(" ") && !text.startsWith("\t"))) {

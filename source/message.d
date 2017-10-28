@@ -1,11 +1,11 @@
-import unfoldtext;
-import processline;
 import std.algorithm;
 import std.string;
 import std.stdio;
 import std.datetime;
 import std.conv;
-
+import unfoldtext;
+import processline;
+import imapparse : parenthesisContents;
 
 class Message
 {
@@ -75,11 +75,11 @@ public:
   {
     return m_to;
   }
-
   @property string from() @safe const pure nothrow
   {
     return m_from;
   }
+
   
   @property string date() @safe const pure nothrow
   {

@@ -206,7 +206,6 @@ public:
 
   final string getSetting(in string key) const @safe
   {
-    writeln(key);
     if(hasSetting(key)) {
       return m_configOption[key];
     } else {

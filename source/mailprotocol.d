@@ -181,7 +181,7 @@ public:
     // Search its position in the mailbox.
     foreach(m; m_messages) {
       x++;
-      writeln(x);
+      //      writeln(x);
       if (m.uidl == uidl) {
 	result = remove(x, m.uidl);
       }
@@ -218,7 +218,7 @@ public:
 
 
       string messageQuery = insertValue(getQueryFormat(Command.Delete), messageNumber);
-      writeln("Deleting message ", messageNumber, " with UID ", uidl);
+      //      writeln("Deleting message ", messageNumber, " with UID ", uidl);
       auto response = query(messageQuery);
       if (response.isValid) {
 	m_messages[messageNumber-1].deleted = true;

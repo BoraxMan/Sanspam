@@ -39,7 +39,6 @@ public:
 
   final this(in string mboxName) @safe
   {
-    writeln(mboxName);
     m_config = getConfig(mboxName);
     auto port = m_config.getSetting("port").to!ushort;
     auto type = m_config.getSetting("type");
