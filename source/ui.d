@@ -42,7 +42,7 @@ void editAccount(in string account)
 
   MENU* messageMenu = null;
   ITEM*[] messageItems;
-  
+  ITEM* currentItem;
   Mailbox mailbox;
 
   scope(exit)
@@ -67,8 +67,10 @@ void editAccount(in string account)
     }
   
   accountEditWindow = newwin(LINES-5,COLS-2,1,1);
-
+  int x;
+  immutable a = toStringz("SDF");
   writeStatusMessage("Logging in...");
+
   try {
     mailbox = new Mailbox(account);
     mailbox.login;
@@ -83,21 +85,26 @@ void editAccount(in string account)
     auto except = new ExceptionHandler(e);
     except.display;
   }
-
-  foreach(ref m; mailbox) {
-    messageItems~=new_item(m.from.toStringz,m.subject.toStringz);
+  foreach(m; mailbox) {
+    x++;
+    currentItem=new_item(m.from.toStringz,m.subject.toStringz);
+    if (currentItem == null) {
+      writeStatusMessage("Could not process"~m.from);
+    }
+    messageItems~=currentItem;
   }
 
   messageMenu = new_menu(messageItems.ptr);
   set_menu_win(messageMenu, accountEditWindow);
-  set_menu_sub(messageMenu, derwin(accountEditWindow,LINES-10,COLS-3,0,0));
+  set_menu_sub(messageMenu, derwin(accountEditWindow,LINES-20,COLS-190,0,0));
   set_menu_mark(messageMenu, " * ");
+  set_menu_format(messageMenu,LINES-20,1);
   keypad(accountEditWindow, true);
   post_menu(messageMenu);
   wrefresh(accountEditWindow);
   
 
-  writeStatusMessage("(D)elete, (B)ounce and delete, (Q)uit, (C)ancel and quit");
+  //  writeStatusMessage("(D)elete, (B)ounce and delete, (Q)uit, (C)ancel and quit");
 
   int c;
   while ((c = wgetch(accountEditWindow)) != 'q')
@@ -183,6 +190,7 @@ string accountSelectMenu()
   ITEM* currentItem = null;
   int c;
   string account;
+  
   scope(exit) {
     foreach(ref x; mailboxes) {
 	free_item(x);

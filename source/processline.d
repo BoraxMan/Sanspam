@@ -39,7 +39,7 @@ private:
     foreach(ref x; range) {
       // If we find it, the next line is to process text and insert it somewhere.
       // But we can't have found it before, unless it is a repeatable type.
-      if (text.startsWith(messageParts[x].label) && (messageParts[x].label.length > 1)) {
+      if (text.toLower.startsWith(messageParts[x].label) && (messageParts[x].label.length > 1)) {
 	return x;
       }
     }
@@ -99,13 +99,13 @@ public:
 
   this() @safe
   {
-    messageParts[messageComponents.Subject] = messagePart("Subject:", "",false, false);
-    messageParts[messageComponents.Date] = messagePart("Date:", "",false, false);
-    messageParts[messageComponents.To] = messagePart("To:", "", false, false);
-    messageParts[messageComponents.From] = messagePart("From:", "", false, false);
-    messageParts[messageComponents.Return_Path] = messagePart("Return-Path:", "", false, false);
-    messageParts[messageComponents.Received] = messagePart("Received:", "", true, false);
-    messageParts[messageComponents.Message_ID] = messagePart("Message-ID:", "", false, false);
+    messageParts[messageComponents.Subject] = messagePart("subject:", "",false, false);
+    messageParts[messageComponents.Date] = messagePart("date:", "",false, false);
+    messageParts[messageComponents.To] = messagePart("to:", "", false, false);
+    messageParts[messageComponents.From] = messagePart("from:", "", false, false);
+    messageParts[messageComponents.Return_Path] = messagePart("return-path:", "", false, false);
+    messageParts[messageComponents.Received] = messagePart("received:", "", true, false);
+    messageParts[messageComponents.Message_ID] = messagePart("message-ID:", "", false, false);
     messageParts[messageComponents.Unknown] = messagePart("", "", true, true);
 
     foreach(ref x; messageParts) {
