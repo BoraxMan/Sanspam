@@ -5,7 +5,6 @@ import message;
 import mailprotocol;
 import spaminexexception;
 import std.exception;
-import std.stdio;
 import std.conv;
 import processline;
 import exceptionhandler;
@@ -50,7 +49,7 @@ public:
 
   override final string getUID(in int messageNumber) @safe
   {
-    string UIDquery = "UID "~messageNumber.to!string;
+    string UIDquery = "UIDL "~messageNumber.to!string;
     immutable auto UIDresponse = query(UIDquery);
     if (UIDresponse.isValid == false) {
       throw new SpaminexException("POP3 transfer failure", "Failed to execute query "~UIDquery);
@@ -68,7 +67,7 @@ public:
       return;
     immutable auto results = split(response.contents);
     foreach (x; results) {
-      if (x.toUpper == "UID") {
+      if (x.toUpper == "UIDL") {
 	m_supportUID = true;
       } else if (x.toUpper == "TOP") {
 	m_supportTOP = true;

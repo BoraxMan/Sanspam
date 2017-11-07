@@ -1,7 +1,6 @@
 // Super class for Mail protocol handling.
 import std.typecons : Tuple;
 import std.string;
-import std.stdio;
 import std.array;
 import std.format;
 import processline;
@@ -88,14 +87,14 @@ struct Messages
     return(m_messages[begin-1]);
   }
   
-  final auto opIndex(int n)
+  final ref auto opIndex(int n)
     in
       {
 	assert(n <= m_messages.length);
       }
   body
     {    
-      return m_messages[n-1];
+      return &m_messages[n-1];
     }
 }
 
@@ -132,6 +131,7 @@ public:
   abstract void selectFolder(in ref Folder folder) @safe;
   abstract queryResponse query(in string command, bool multiline = false) @safe;
   abstract string getQueryFormat(Command command) @safe pure;
+
   bool close() @safe
   {
     string messageQuery = getQueryFormat(Command.Close);
@@ -141,11 +141,6 @@ public:
     }
     
     // Now, logout...
-    messageQuery = getQueryFormat(Command.Logout);
-    response = query(messageQuery);
-    if (response.isValid == false) {
-      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
-    }    
     m_socket.close;
     return true;
   }
@@ -163,7 +158,6 @@ public:
     
     {
       thisUID = getUID(messageNumber);
-
       if (uidl.length > 0) {
 	if (thisUID != uidl) {
 	  return false;
@@ -181,7 +175,6 @@ public:
     // Search its position in the mailbox.
     foreach(m; m_messages) {
       x++;
-      //      writeln(x);
       if (m.uidl == uidl) {
 	result = remove(x, m.uidl);
       }
@@ -201,7 +194,7 @@ public:
     if (m_supportUID) {
       immutable bool result = checkUID(uidl, messageNumber);
       if (!result) {
-	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got something else instead.");
+	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(messageNumber)~" instead.");
       }
 
 
@@ -219,19 +212,21 @@ public:
 
       string messageQuery = insertValue(getQueryFormat(Command.Delete), messageNumber);
       //      writeln("Deleting message ", messageNumber, " with UID ", uidl);
+
       auto response = query(messageQuery);
       if (response.isValid) {
 	m_messages[messageNumber-1].deleted = true;
       }
     return response.isValid;    
     }
-    assert(0);
+    return false;
   }
 }
 
 
 unittest
 {
+  import std.stdio;
   string test1 = "TEST %d TEST";
   string result1;
   result1 = insertValue(test1,44);

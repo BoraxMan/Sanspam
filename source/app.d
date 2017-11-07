@@ -15,8 +15,9 @@ import ui;
 
 int main()
 {
-
+  
   init;
+  // bounceMessage("dennisk@netspace.net.au","netspace.net.au");
   scope(exit) {
     endwin;
   }
@@ -24,14 +25,15 @@ int main()
   mainWindow;
   createStatusWindow;
   string account;
-
+  
   while((account = accountSelectMenu) != "")
   {
     editAccount(account);
     // No text, means the user wanted to quit.
 
   }
-  return 0;  
+  
+  endwin;
   //  writeln(account);
 
   /*
@@ -72,7 +74,9 @@ int main()
     write(a.subject," ", a.from);
     writeln;
       
-    }*/
+    }
+  */
+    return 0;
 
 }
 

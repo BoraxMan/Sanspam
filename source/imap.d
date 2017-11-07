@@ -1,4 +1,3 @@
-import std.stdio;
 import std.conv;
 import std.typecons : Tuple;
 import std.string;
@@ -164,10 +163,6 @@ public:
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	string uid = parseUID(response2.contents);
-	//	writeln(response2.contents);
-	//	writeln("UID ", uid);
-
-	
 	m_messages.add(m);
 
       }
@@ -193,7 +188,6 @@ public:
 	  m_mailboxSize = x[x.length-2].to!int;
       }
     }
-    //    writeln(m_mailboxSize);
     return;
   }
 

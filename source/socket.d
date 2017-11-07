@@ -36,6 +36,7 @@ public:
   
   void close() @safe
   {
+    m_socket.send("LOGOUT");
     m_socket.close;
   }
 
