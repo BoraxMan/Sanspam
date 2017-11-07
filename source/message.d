@@ -1,26 +1,28 @@
+import std.traits;
 import std.algorithm;
 import std.string;
-import std.stdio;
 import std.datetime;
 import std.conv;
 import unfoldtext;
 import processline;
 import imapparse : parenthesisContents;
 
+struct Mandatory {}; // User Defined Attribute.  Set on all Message fields which cannot be left blank.
+
 class Message
 {
 private:
   char[] m_message;
   string m_uidl;
-  string m_subject;
+  @Mandatory string m_subject;
   string m_date;
-  string m_to;
-  string m_from;
+  @Mandatory string m_to;
+  @Mandatory string m_from;
   string m_returnPath;
   string m_received;
   string m_message_ID;
-  bool m_deleted;
-  
+  bool m_deleted = false;
+  bool m_bounce = false;
   bool m_isSpam = false; // Innocent until proven guilty.
   
 public:
@@ -43,8 +45,18 @@ public:
     m_received = _received;
     m_message_ID = _message_id;
     m_uidl = _m_uidl;
+
+
+    foreach(member; __traits(allMembers, Message))
+      {
+	static if(hasUDA!(__traits(getMember, Message, member), Mandatory))
+	  {
+	    if (__traits(getMember, this, member) == "") {
+	      __traits(getMember, this, member) = "(none)";
+	    }
+	  }
+      }
   }
-  
   // Properties
   @property bool deleted() @safe const pure nothrow
   {
@@ -75,11 +87,11 @@ public:
   {
     return m_to;
   }
+
   @property string from() @safe const pure nothrow
   {
     return m_from;
   }
-
   
   @property string date() @safe const pure nothrow
   {
@@ -111,11 +123,22 @@ public:
   {
     m_isSpam = n;
   }
+
+  @property void bounce(bool n) @safe pure nothrow
+  {
+    m_bounce = n;
+  }
+
+  @property bool bounce() @safe pure nothrow
+  {
+    return m_bounce;
+  }
   
 }
 
 
 unittest {
+  import std.stdio;
   ProcessMessageData pmd = new ProcessMessageData();
   Message m;
   File file = File("email.txt","r");
