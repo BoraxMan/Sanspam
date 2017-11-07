@@ -38,6 +38,7 @@ public:
       }
     // Add end line back on.
     //m_UnfoldedText~="\r\n";
+    m_UnfoldedText = m_UnfoldedText.strip;
     return m_UnfoldedText;
   }
 }

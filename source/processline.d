@@ -2,7 +2,6 @@ import unfoldtext;
 import message;
 import std.conv;
 import std.string;
-import std.stdio;
 import std.algorithm;
 
 enum messageComponents
@@ -141,13 +140,16 @@ public:
       x.data = x.unfolder.unfolded;
     }
   }
-	      
+
+  /*
+import std.stdio;
   void print() @safe
   {
     foreach(ref x; messageParts) {
       writeln(x.label, x.data);
     }
   }
+  */
 }
 
 
