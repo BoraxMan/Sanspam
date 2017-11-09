@@ -1,5 +1,4 @@
 import std.typecons;
-import std.stdio;
 import std.conv;
 import std.algorithm;
 import std.string;
@@ -10,6 +9,11 @@ import spaminexexception;
 immutable string utfSeqStart = "=?";
 immutable string utfSeqEnd = "?=";
 immutable string space = x"20";
+
+immutable string encodingLabelUTF8 = "utf-8";
+immutable string encodingLabelISO_8859_1 = "iso-8859-1";
+immutable string encodingLabelISO_8859_2 = "iso-8859-2";
+
 alias textEncodingType = Tuple!(charsetType, "charset", encodingType, "encoding", ptrdiff_t, "encodeHeaderLength");
 // encodeHeaderLength is where the encoding information ends, and the encoded text starts.
 // We use this to determine where we should start decoding the text.
@@ -32,11 +36,11 @@ textEncodingType getCharsetTypeEncodingType(in string text) @safe pure
   textEncodingType te;
   immutable auto first = indexOf(text,"?");
 
-  if (text[0..first].toLower == "utf-8")
+  if (text[0..first].toLower == encodingLabelUTF8)
     te.charset = charsetType.UTF8;
-  else if (text[0..first].toLower == "iso-8859-1")
+  else if (text[0..first].toLower == encodingLabelISO_8859_1)
     te.charset = charsetType.ISO8859_1;
-  else if (text[0..first].toLower == "iso-8859-2")
+  else if (text[0..first].toLower == encodingLabelISO_8859_2)
     te.charset = charsetType.ISO8859_2;
   else
     te.charset = charsetType.UNKNOWN;
@@ -86,7 +90,6 @@ string decode2(string text)
   immutable textEncodingType te = getCharsetTypeEncodingType(text);
   index += te.encodeHeaderLength;
   text = text[index..$];
-
   if (te.encoding == encodingType.BASE64) {
     text.base64Decode;
   }
@@ -208,8 +211,22 @@ string decodeText(string text)
       if (text[x..x+2] == utfSeqStart) {
 	// Found an atom.
 	x+=2;
+	int z = x;
 	// Find where the atom ends.
-	auto zend = countUntil(text[x..$], "?=");
+	if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
+	  z+=encodingLabelUTF8.length+3;
+	} else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
+	  z+=encodingLabelISO_8859_1.length+3;
+	} else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
+	  z+=encodingLabelISO_8859_2.length+3;
+	} else z+=2;
+	
+	auto zend = countUntil(text[x..$], utfSeqEnd);
+	if (zend + x < z) {
+	  auto zend2 = countUntil(text[z..$], utfSeqEnd);
+	  zend = zend2 + (z-x);
+	  }
+	
 	output~= decode2(text[x..(x+zend)]);
 	x+=zend+2;
 	continue;
@@ -223,6 +240,8 @@ string decodeText(string text)
 
 unittest
 {
+  import std.stdio;
+
   assert(hextoChar!char("E2") == 226);
   assert(hextoChar!char("10") == 16);
   assert(hextoChar!Latin1Char("10") == 16);
@@ -246,4 +265,6 @@ unittest
   writeln(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
   writeln(decodeText("=?UTF-8?B?2KfZhNiu2LfZiNin2Kog2KfZhNiq2Yog2KrYrNmF2Lkg2KjZitmG?= =?UTF-8?B?INit2YHYuCDYp9mE2YLYsdin2ZPZhiDYp9mE2YPYsdmK2YUg2YjZgQ==?= =?UTF-8?B?2YfZhdmHINmF2YXYpyDYp9mU2YXZhNin2Ycg2KfZhNi52YTYp9mF?= =?UTF-8?B?2Kkg2LnYqNivINin2YTZhNmHINin2YTYutiv2YrYp9mGLnBkZg==?="));
   writeln(decodeUTF8!Latin1String("Keld_J=F8rn_Simonsen"));
+   writeln(decodeText("Subject: =?UTF-8?Q?Dise=C3=B1o=20de=20P=C3=81GINAS=20W?= =?UTF-8?Q?EB?=,=?UTF-8?Q?=20Posicionate=20en=20Googl?==?UTF-8?Q?e=20y=20Vende=20M=C3=A1s=2E=2E=2E?="));
+
 }
