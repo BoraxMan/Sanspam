@@ -93,7 +93,12 @@ struct Messages
 	assert(n <= m_messages.length);
       }
   body
-    {    
+    {
+      import std.stdio;
+      import deimos.ncurses;
+      import deimos.ncurses.menu;
+
+      writeln(n);
       return &m_messages[n-1];
     }
 }
@@ -131,6 +136,18 @@ public:
   abstract void selectFolder(in ref Folder folder) @safe;
   abstract queryResponse query(in string command, bool multiline = false) @safe;
   abstract string getQueryFormat(Command command) @safe pure;
+
+
+  final bool startTLS(EncryptionMethod method = EncryptionMethod.TLSv1_2) @trusted
+  {
+    immutable string message = "STARTTLS";
+    auto x = query(message);
+    if (!x.isValid)
+      return false;
+
+    m_socket.startSSL(method);
+    return true;
+  }
 
   bool close() @safe
   {
@@ -215,7 +232,7 @@ public:
 
       auto response = query(messageQuery);
       if (response.isValid) {
-	m_messages[messageNumber-1].deleted = true;
+	m_messages[messageNumber].deleted = true;
       }
     return response.isValid;    
     }

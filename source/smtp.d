@@ -29,6 +29,7 @@ private:
 public:
   this() {}
 
+
   final this(in string server, in ushort port) @safe
   {
     m_socket = new MailSocket(server, port);

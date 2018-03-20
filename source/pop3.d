@@ -33,6 +33,9 @@ public:
   final this(in string server, in ushort port) @safe
   {
     m_socket = new MailSocket(server, port);
+    if (port == 995) {
+      m_socket.startSSL;
+    }
     immutable auto b = m_socket.receive();
     if(!evaluateMessage(b)) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");

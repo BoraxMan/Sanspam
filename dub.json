@@ -4,7 +4,9 @@
 	"Dennis Katsonis"
     ],
     "dependencies": {
-        "ncurses": "*"
+        "ncurses": "*",
+	"openssl": "~>1.1.6+1.0.1g"
+
     },
     "subConfigurations": {
         "ncurses": "full"

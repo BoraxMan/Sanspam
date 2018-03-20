@@ -105,11 +105,9 @@ public:
     m_config = getConfig(mboxName);
     auto port = m_config.getSetting("port").to!ushort;
     auto type = m_config.getSetting("type");
-
     if (type.toLower == "pop") {
       auto server = m_config.getSetting("pop");
       m_connection = new Pop3(server, port);
-
     } else if (type.toLower == "imap") {
       auto server = m_config.getSetting("imap");
       m_connection = new IMAP(server, port);

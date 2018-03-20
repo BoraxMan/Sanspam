@@ -1,4 +1,6 @@
 import core.stdc.errno;
+import core.sys.posix.sys.ioctl;
+import core.stdc.signal;
 import std.stdio;
 import deimos.ncurses;
 import deimos.ncurses.menu;
@@ -11,6 +13,9 @@ import exceptionhandler;
 import spaminexexception;
 import mailbox;
 import mailprotocol;
+
+const int SIGWINCH = 28;
+bool termResized = false;
 
 enum ColourPairs : int {
   MainBorder = 1,
@@ -27,6 +32,43 @@ WINDOW *accountSelectionWindow = null;
 WINDOW *accountEditWindow = null;
 WINDOW *statusWindow = null;
 WINDOW *headerWindow = null;
+
+void termResize()
+{
+
+  winsize size;
+  int x;
+  int y;
+  if (termResized == true) {
+    if (ioctl(stdout.fileno(), TIOCGWINSZ, &size) == 0) {
+      y = size.ws_row;
+      x = size.ws_col;
+    }
+    if (accountEditWindow !is null) {
+      wresize(accountEditWindow, y-3,x-2);
+      wrefresh(accountEditWindow);
+    }
+    if (headerWindow !is null) {
+      wresize(headerWindow,y-1, x);
+      wrefresh(headerWindow);
+    }
+    refresh;
+    termResized = false;
+  }
+}
+extern (C) void function(int) nothrow @nogc @system d;
+
+extern (C) {
+  /* We have very limited ability to respond to a signal that the terminal has been resized.
+Only set the bool to true.  Handle resize in the event loop to manage input.
+  */
+  
+  void doResize(int x = 0) nothrow @nogc @system
+  {
+    termResized = true;
+  }
+}
+
 
 void createStatusWindow()
 {
@@ -56,6 +98,9 @@ void writeStatusMessage(in string message)
 void editAccount(in string account)
 {
 
+  doResize(3);
+  d = &doResize;
+  signal(28, d);
   MENU* messageMenu = null;
   ITEM*[] messageItems;
   ITEM* currentItem;
@@ -131,7 +176,7 @@ void editAccount(in string account)
   set_menu_win(messageMenu, accountEditWindow);
   set_menu_sub(messageMenu, derwin(accountEditWindow,LINES-4,COLS-2,0,0));
   set_menu_mark(messageMenu, "*");
-  set_menu_format(messageMenu,LINES-3,1);
+  set_menu_format(messageMenu,LINES-4,1);
   
   set_menu_fore(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuFore));
   set_menu_back(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuBack));
@@ -187,9 +232,13 @@ void editAccount(in string account)
 	  (cast(Message*)item_userptr(current_item(messageMenu))).deleted = true;
 	  menu_driver(messageMenu, REQ_TOGGLE_ITEM);
 	  break;
+	case KEY_RESIZE:
+	  return;
+
 	default:
 	  break;
 	}
+            termResize;
       wrefresh(accountSelectionWindow);
     }
 
@@ -337,6 +386,7 @@ string accountSelectMenu()
 	  break;
         }
       wrefresh(accountSelectionWindow);
+      termResize;
     }
   return account;
 }
