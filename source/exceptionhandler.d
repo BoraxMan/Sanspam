@@ -10,7 +10,6 @@ private:
 public:
   this(SpaminexException e) @safe
   {
-    m_exception = new SpaminexException(e.msg);
     m_exception = e;
   }
 

@@ -21,12 +21,19 @@ capabilities parse_capability_list(in string response) @safe pure
   return capability;
 }
 
+size_t parseStatus(in string response) @safe pure
+{
+  return parseUID(response).to!int;
+}
+  
+  
+
 string parseUID(in string response) @safe pure
 {
   size_t pos;
   auto text = parenthesisContents(response,'(',')', pos);
-  auto s = text.split;
-  return text[1].to!string;
+  auto uid = text.split;
+  return uid[1].to!string;
 }
   
 flaglist parse_flag_list(in string response) @safe pure

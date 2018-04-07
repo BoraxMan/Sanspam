@@ -11,6 +11,14 @@ import config;
 import mailprotocol;
 import SMTP_mod;
 
+
+enum Protocol {
+  POP3,
+  IMAP,
+  SMTP,
+  Unknown
+}
+
 const string bounceFormat = "From: <MAILER-DAEMON@%s>\r\nSubject: Returned mail: see Transcript for details.\r\n\r\n   ----- The following addresses had permanent fatal errors -----\r\n<%s>\r\n(reason: 550 5.1.1 <%s>... User unknown)\r\n\r\n   ----- Transcript of session follows -----\r\n... while talking to mlsrv.%s.:\r\n>>> DATA\n<<< 550 5.1.1 <%s>... User unknown\r\n550 5.1.1 <%s>... User unknown\r\n<<< 503 5.0.0 Need RCPT (recipient)\r\n\r\n.";
 
 string getDomainFromEmailAddress(in string address)
@@ -27,8 +35,15 @@ class Mailbox
 private:
   MailProtocol m_connection;
   Config m_config;
-
+  Protocol m_protocol;
+  
 public:
+
+  @property Protocol protocol()
+  {
+    return m_protocol;
+  }
+
   @property int size()
   {
     return m_connection.m_messages.length;
@@ -53,12 +68,14 @@ public:
     string domain;
     string smtp_server;
     ushort smtp_port;
+
     scope(failure)
       {
 	if (smtp !is null) {
 	  smtp.close;
 	}
       }
+
     string recipient = m_connection.m_messages[count].from;
     if(m_config.hasSetting("domain")) {
 	domain = m_config.getSetting("domain");
@@ -108,15 +125,18 @@ public:
     if (type.toLower == "pop") {
       auto server = m_config.getSetting("pop");
       m_connection = new Pop3(server, port);
+      m_protocol = Protocol.POP3;
     } else if (type.toLower == "imap") {
       auto server = m_config.getSetting("imap");
       m_connection = new IMAP(server, port);
+      m_protocol = Protocol.IMAP;
     } else {
+      m_protocol = Protocol.Unknown;
       throw new SpaminexException("Account type not specified","Configuration needs to include 'type = xxx' where xxx is pop or imap");
     }
   }
 
-  final void selectFolder(in ref Folder folder) @safe
+  final void selectFolder(ref Folder folder) @safe
   {
     return m_connection.selectFolder(folder);
   }

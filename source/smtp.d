@@ -101,26 +101,12 @@ public:
     return commandText;
   }
 
-  override final bool close() @trusted
-  {
-    string messageQuery = getQueryFormat(Command.Close);
-    auto response = query(messageQuery);
-    if (response.isValid == false) {
-      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
-    }
-    
-    // Now, logout...
-    m_socket.close;
-    return true;
-  }
-
-
   override final bool loadMessages() @safe
   {
     return true;
   }
 
-  override final void selectFolder(in ref Folder folder) @safe
+  override final void selectFolder(ref Folder folder) @safe
   {
     return;
   }

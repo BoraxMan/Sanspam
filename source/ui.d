@@ -95,7 +95,7 @@ void writeStatusMessage(in string message)
 }
 
 
-void editAccount(in string account)
+void editAccount(in string account, in string folder = "")
 {
 
   doResize(3);
@@ -139,7 +139,18 @@ void editAccount(in string account)
     auto except = new ExceptionHandler(e);
     except.display;
   }
-  
+
+  if (mailbox.protocol == Protocol.IMAP)
+    {
+      FolderList folderList = mailbox.folderList;
+      foreach(a;folderList)
+	{
+	  if (a.name == "INBOX") {
+	    mailbox.selectFolder(a);
+	  }
+	}
+    }
+      
   try {
     mailbox.loadMessages;
   } catch (SpaminexException e) {
@@ -255,8 +266,9 @@ void editAccount(in string account)
       }
     }
   }
-  
+
   mailbox.close;
+  
   wrefresh(accountEditWindow);
 }
 

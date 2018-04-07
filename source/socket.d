@@ -86,7 +86,6 @@ public:
   
   void close() @trusted
   {
-    m_socket.send("LOGOUT");
     endSSL;
     m_socket.close;
   }

@@ -1,3 +1,4 @@
+import std.algorithm;
 import std.conv;
 import std.typecons : Tuple;
 import std.string;
@@ -40,6 +41,7 @@ class IMAP : MailProtocol
 {
 private:
   commandPrefix prefix;
+  Folder currentFolder;
   
   string chompQueryPrefix(in string message, in string prefix) @safe pure
   {
@@ -48,6 +50,8 @@ private:
       {
 	if (!line.startsWith(prefix)) {
 	  response~=(line~endline);
+	} else {
+	  response~=(findSplitAfter(line,prefix)[1])~endline;
 	}
       }
     return response;
@@ -89,9 +93,28 @@ public:
     auto x = query("LOGIN "~username~" "~password,false);
     if (!x.isValid)
       return false;
+    getCapabilities(x.contents);
     return true;
   }
 
+  final void getCapabilities(in string serverResponse) @safe
+  {
+    m_capabilities = parse_capability_list(serverResponse);
+    foreach(ref x; m_capabilities) {
+      switch (x.toLower) {
+      case "uid":
+	m_supportUID = true;
+	break;
+      case "uidplus":
+	m_supportUID = true;
+	break;
+      default:
+	break;
+      }
+      
+    }
+    
+  }
   override final string getQueryFormat(Command command) @safe pure
   {
     string commandText;
@@ -102,7 +125,7 @@ public:
 	commandText = "STORE %d +FLAGS (\\Deleted)";
 	break;
       case Command.Close:
-	commandText = "EXPUNGE";
+	commandText = "CLOSE";
 	break;
       case Command.Logout:
 	commandText = "LOGOUT";
@@ -126,7 +149,7 @@ public:
   final void getIMAPFolderList() @safe
   {
     queryResponse response;
-    immutable string thisQuery = "LIST \"\" \"*\"";
+    immutable string thisQuery = "LIST \"\" \"%\"";
     response = query(thisQuery,false);
     if (!response.isValid) {
       return;
@@ -139,41 +162,59 @@ public:
   
   override final bool loadMessages() @safe
   {
-    if (m_mailboxSize == 0) {
-      return true;
-    }
+    selectFolder(currentFolder);
 
+    queryResponse response;
+    string messageQuery;
     m_messages.clear; // We load all again.  Clear any existing messages.
-
+    
     ProcessMessageData pmd = new ProcessMessageData();
-
+    
     for(int x = 1; x <= m_mailboxSize; x++)
       {
 	Message m;
-	string messageQuery = "FETCH "~x.to!string~" BODY[HEADER]";
-	immutable queryResponse response = query(messageQuery,false);
+	messageQuery = "FETCH "~x.to!string~" BODY[HEADER]";
+	response = query(messageQuery,false);
 
 	if (response.isValid == false) {
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	m = pmd.messageFactory(response.contents);
-	messageQuery = "FETCH "~x.to!string~" UID";
-	auto response2 = query(messageQuery,false);
-	if (response.isValid == false) {
-	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
+	if (m_supportUID) {
+	  messageQuery = "FETCH "~x.to!string~" UID";
+	  auto response2 = query(messageQuery,false);
+	  if (response.isValid == false) {
+	    throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
+	  }
+	  string uid = parseUID(response2.contents);
+	  m.uidl = uid;
 	}
-	string uid = parseUID(response2.contents);
 	m_messages.add(m);
 
       }
     return true;
   }
-    
-
-  override final void selectFolder(in ref Folder folder) @safe
+  
+  final int getNumberOfMessages() @trusted
+  // Returns the number of e-mails, or -1 in case of error.
   {
+    immutable auto response = query("STAT");
+    if (response.isValid == false)
+      return 0;
+
+    immutable auto result = response.contents.split;
+    auto numberOfMessages = result[0].to!int;
+    m_mailboxSize = numberOfMessages;
+    return m_mailboxSize;
+
+  }
+
+
+  override final void selectFolder(ref Folder folder) @safe
+  {
+    currentFolder = folder;
     queryResponse response;
-    response = query("SELECT "~folder.name);
+    response = query("SELECT "~currentFolder.name);
 
     if(!response.isValid) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
@@ -200,7 +241,6 @@ public:
 
     // Evaluate response.
     immutable bool isOK = evaluateMessage(message, prefix.currentPrefix);
-
     if (isOK) {
       response.isValid = true;
       response.contents = chompQueryPrefix(message, prefix.currentPrefix);
@@ -214,7 +254,36 @@ public:
     
   override final string getUID(in int messageNumber) @safe
   {
-    return "";
+    string UIDquery = "FETCH "~messageNumber.to!string~" UID";
+    immutable auto UIDresponse = query(UIDquery);
+    if (UIDresponse.isValid == false) {
+      throw new SpaminexException("IMAP transfer failure", "Failed to execute query "~UIDquery);
+    } else {
+      immutable auto results = parseUID(UIDresponse.contents);
+      return results;
+    }
+  }
+
+
+  override bool close() @safe
+  {
+    // First expunge
+    auto response = query("EXPUNGE");
+    if (response.isValid == false) {
+      throw new SpaminexException("Failed delete messages on server.","E-mails marked for deletion may not be deleted.");
+    }
+
+    
+    auto messageQuery = getQueryFormat(Command.Close);
+    response = query(messageQuery);
+    if (response.isValid == false) {
+      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
+    }
+
+    
+    // Now, logout...
+    m_socket.close;
+    return true;
   }
 
 }

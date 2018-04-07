@@ -30,6 +30,7 @@ struct Folder {
   flaglist flags;
   string quotedchar;
   string name;
+  size_t numberMessages;
 }
 
 string insertValue(in string format, in int value)
@@ -91,14 +92,10 @@ struct Messages
     in
       {
 	assert(n <= m_messages.length);
+	assert(n >= 0);
       }
   body
     {
-      import std.stdio;
-      import deimos.ncurses;
-      import deimos.ncurses.menu;
-
-      writeln(n);
       return &m_messages[n-1];
     }
 }
@@ -122,7 +119,7 @@ class MailProtocol
   @ConfigOption @Encrypted string m_password;
 
   MailSocket m_socket;
-  string endline = "\r\n";
+  immutable string endline = "\r\n";
   char[65536] m_buffer;
   string[] m_capabilities;
   FolderList m_folderList;
@@ -133,7 +130,7 @@ public:
   abstract string getUID(in int messageNumber) @safe;
   abstract FolderList folderList() @safe;
   abstract bool loadMessages() @safe;
-  abstract void selectFolder(in ref Folder folder) @safe;
+  abstract void selectFolder(ref Folder folder) @safe;
   abstract queryResponse query(in string command, bool multiline = false) @safe;
   abstract string getQueryFormat(Command command) @safe pure;
 
@@ -154,7 +151,7 @@ public:
     string messageQuery = getQueryFormat(Command.Close);
     auto response = query(messageQuery);
     if (response.isValid == false) {
-      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
+      throw new SpaminexException(response.contents,response.contents);
     }
     
     // Now, logout...
@@ -214,7 +211,6 @@ public:
 	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(messageNumber)~" instead.");
       }
 
-
       // If we got this far, we don't have a UID to check against, or the check passed.  So delete the message.
 
       // But first, if we have specified a Trash folder, copy to trash.
@@ -228,13 +224,11 @@ public:
 
 
       string messageQuery = insertValue(getQueryFormat(Command.Delete), messageNumber);
-      //      writeln("Deleting message ", messageNumber, " with UID ", uidl);
-
       auto response = query(messageQuery);
       if (response.isValid) {
 	m_messages[messageNumber].deleted = true;
       }
-    return response.isValid;    
+      return response.isValid;    
     }
     return false;
   }

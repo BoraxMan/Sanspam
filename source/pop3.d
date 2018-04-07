@@ -185,7 +185,7 @@ public:
   }
 
 
-  override final void selectFolder(in ref Folder folder) @safe
+  override final void selectFolder(ref Folder folder) @safe
   {
     return;
   }

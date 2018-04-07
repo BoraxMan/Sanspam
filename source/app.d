@@ -21,6 +21,42 @@ int main()
   scope(exit) {
     endwin;
   }
+  /*
+  Mailbox mailbox;
+  FolderList d;
+  
+  try {
+    mailbox = new Mailbox("Nostromo");
+    mailbox.login;
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+  }
+
+  d = mailbox.folderList;
+  mailbox.selectFolder(d[4]);
+  foreach(o;d)
+    {
+      writeln(o.name);
+    }
+  
+  try {
+    mailbox.loadMessages;
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+  }
+
+
+  foreach(ref m; mailbox)
+    {
+      writeln(m.subject);
+      writeln(m.uidl);
+    }
+  //  writeln( mailbox.remove(1, mailbox.front));
+  return 0;
+  */
+  
   initCurses;
   mainWindow;
   createStatusWindow;
@@ -35,7 +71,7 @@ int main()
   
   endwin;
   //  writeln(account);
-
+  
   /*
     
     foreach(c; xx) {
@@ -76,7 +112,7 @@ int main()
       
     }
   */
-    return 0;
+  return 0;
 
 }
 
