@@ -82,6 +82,12 @@ public:
   this(in string server, in ushort port) @safe 
   {
     m_socket = new MailSocket(server, port);
+    if (port == 993) {
+      if(m_socket.startSSL == false) {
+	throw new SpaminexException("Failed to create SSL socket", "SSL Socket failure.");
+      }
+    }
+
     immutable string b = m_socket.receive();
     if(!evaluateMessage(b,".")) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");

@@ -5,7 +5,8 @@
     ],
     "dependencies": {
         "ncurses": "*",
-	"openssl": "~>1.1.6+1.0.1g"
+	"openssl": ">=0.9.8"
+
 
     },
     "subConfigurations": {
@@ -14,5 +15,6 @@
 
     "description": "Simple mailbox cleaning tool.",
     "copyright": "Copyright © 2017, Dennis Katsonis",
-    "license": "GPL v2"
+    "license": "GPL v2",
+    "libs-posix": [":libssl.so.1.0.2m", ":libcrypto.so.1.0.2m"],
 }

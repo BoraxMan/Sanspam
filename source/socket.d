@@ -36,6 +36,13 @@ private:
   X509* m_x509;
   bool m_verified;
 
+  SSL_METHOD* _sslMethod;
+  SSL_CTX* _sslCtx;
+  SSL* _ssl;
+  X509* _x509;
+  bool _secure;
+  bool _verified;
+  
 
   void endSSL()
   {
@@ -94,8 +101,8 @@ public:
   {
     bool status;
     try {
-      if (m_ssl !is null) {
-	status = SSL_write(m_ssl,message.ptr, message.length.to!int) >= 0;
+      if (m_ssl !is null || _secure == true) {
+	status = SSL_write(_ssl,message.ptr, message.length.to!int) >= 0;
       } else {
 	status = m_socket.send(message) == message.length;
       }
@@ -116,8 +123,8 @@ public:
 
     do {
       try {
-	if (m_ssl !is null) {
-	  len = SSL_read(m_ssl, m_buffer.ptr, m_buffer.length);
+	if (m_ssl !is null || _secure == true) {
+	  len = SSL_read(_ssl, m_buffer.ptr, m_buffer.length);
 	} else {
 	  len = m_socket.receive(m_buffer);
 	}
@@ -135,6 +142,102 @@ public:
 
     return result;
   }
+
+
+      bool startSSL(EncryptionMethod encMethod = EncryptionMethod.TLSv1_2) @trusted
+    {
+        import std.stdio;
+
+        // Init
+        OPENSSL_config("");
+        SSL_library_init();
+        SSL_load_error_strings();
+
+        final switch (encMethod)
+        {
+            //			case EncryptionMethod.SSLv23:
+            //				_sslMethod = cast(SSL_METHOD*) SSLv23_client_method();
+            //				break;
+            //			case EncryptionMethod.SSLv3:
+            //				_sslMethod = cast(SSL_METHOD*) SSLv3_client_method();
+            //				break;
+        case EncryptionMethod.TLSv1:
+            _sslMethod = cast(SSL_METHOD*) TLSv1_client_method();
+            break;
+        case EncryptionMethod.TLSv1_1:
+            _sslMethod = cast(SSL_METHOD*) TLSv1_2_client_method();
+            break;
+        case EncryptionMethod.TLSv1_2:
+            _sslMethod = cast(SSL_METHOD*) TLSv1_2_client_method();
+            break;
+        case EncryptionMethod.None:
+            return false;
+        }
+
+        _sslCtx = SSL_CTX_new(cast(const(SSL_METHOD*))(_sslMethod));
+        if (_sslCtx is null)
+            return false;
+
+        // Stream
+        _ssl = SSL_new(_sslCtx);
+        if (_ssl is null)
+            return false;
+
+        version (Win64)
+            SSL_set_fd(_ssl, cast(int) _sock.handle);
+        else
+            SSL_set_fd(_ssl, m_socket.handle);
+
+        // Handshake
+        if (SSL_connect(_ssl) != 1)
+            return false;
+
+        _x509 = SSL_get_peer_certificate(_ssl);
+
+        if (_x509 is null)
+            return false;
+
+        _secure = true;
+
+        // Verify
+        if (SSL_get_verify_result(_ssl) != X509_V_OK)
+        {
+            _verified = false;
+        }
+        else
+        {
+            _verified = true;
+        }
+        return _secure;
+    }
+
+    void SSLEnd()
+    {
+        if (_secure)
+        {
+            _secure = false;
+            SSL_shutdown(_ssl);
+        }
+
+        if (_x509 !is null)
+        {
+            X509_free(_x509);
+            _x509 = null;
+        }
+
+        if (_ssl !is null)
+        {
+            SSL_free(_ssl);
+            _ssl = null;
+        }
+
+        if (_sslCtx !is null)
+        {
+            SSL_CTX_free(_sslCtx);
+            _sslCtx = null;
+        }
+    }
+  /*
 
   final bool startSSL(EncryptionMethod method = EncryptionMethod.TLSv1_2) @trusted
   {
@@ -186,7 +289,7 @@ public:
     return false; 
   }
 
-
+  */
 
 }
 

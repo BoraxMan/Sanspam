@@ -44,7 +44,7 @@ public:
     return m_protocol;
   }
 
-  @property int size()
+  @property size_t size()
   {
     return m_connection.m_messages.length;
   }
