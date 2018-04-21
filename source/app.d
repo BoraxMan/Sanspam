@@ -16,47 +16,38 @@ import ui;
 int main()
 {
   
-  init;
-  // bounceMessage("dennisk@netspace.net.au","netspace.net.au");
   scope(exit) {
     endwin;
   }
-  /*
-  Mailbox mailbox;
-  FolderList d;
-  
-  try {
-    mailbox = new Mailbox("Nostromo");
-    mailbox.login;
-  } catch (SpaminexException e) {
-    auto except = new ExceptionHandler(e);
-    except.display;
-  }
-
-  d = mailbox.folderList;
-  mailbox.selectFolder(d[4]);
-  foreach(o;d)
-    {
-      writeln(o.name);
+  debug {
+    writeln("Debug mode");
+    Mailbox mailbox;
+    FolderList d;
+    
+    try {
+      mailbox = new Mailbox("hotmail");
+      mailbox.login;
+    } catch (SpaminexException e) {
+      auto except = new ExceptionHandler(e);
+      except.display;
     }
-  
-  try {
-    mailbox.loadMessages;
-  } catch (SpaminexException e) {
-    auto except = new ExceptionHandler(e);
-    except.display;
-  }
-
-
-  foreach(ref m; mailbox)
-    {
-      writeln(m.subject);
-      writeln(m.uidl);
+    
+    try {
+      mailbox.loadMessages;
+    } catch (SpaminexException e) {
+      auto except = new ExceptionHandler(e);
+      except.display;
     }
-  //  writeln( mailbox.remove(1, mailbox.front));
-  return 0;
-  */
+
+    foreach(ref m; mailbox)
+      {
+	writeln(m.subject);
+	writeln(m.uidl);
+      }
+
+  }
   
+  /*  
   initCurses;
   mainWindow;
   createStatusWindow;

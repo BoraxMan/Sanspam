@@ -23,7 +23,7 @@ Config[string] configurations;
 Config currentConfig;
 string path;
 
-void init()
+static this()
 {
   File file;
 
@@ -217,7 +217,7 @@ public:
 
 unittest
 {
-  init;
+
   Config a = getConfig("test1");
   Config b = getConfig("test2");
   Config c = getConfig("netspace");
