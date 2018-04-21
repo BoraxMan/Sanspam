@@ -1,8 +1,10 @@
+import std.typecons;
 import std.stdio;
 import core.time;
 import std.socket;
 import std.string;
 import std.conv: to;
+import buffer;
 import spaminexexception;
 
 import deimos.openssl.conf;
@@ -25,7 +27,7 @@ class MailSocket
 {
 private:
   TcpSocket m_socket;
-  char[65536] m_buffer;
+  Buffer m_buffer;
   string m_server;
   int m_port;
   static const int socketTimeout = 20;
@@ -74,6 +76,7 @@ private:
 public:
   this(in string server, in int port) @safe
   {
+    m_buffer = new Buffer();
     Duration r ;
     try {
       m_socket = new TcpSocket();
@@ -100,6 +103,7 @@ public:
   bool send(in string message) @trusted
   {
     bool status;
+    import std.stdio; writeln("SENDING :", message);
     try {
       if (m_ssl !is null || _secure == true) {
 	status = SSL_write(_ssl,message.ptr, message.length.to!int) >= 0;
@@ -109,25 +113,30 @@ public:
     } catch (SocketException e) {
       throw new SpaminexException(e.msg, "Failure to receive message.");
     }
-
+    //import std.stdio; message.writeln;
     return status;
   }
   
   
 
-  string receive(in bool multiline = false) @trusted
+  ref Buffer receive() @trusted
   {
-    string end = multiline ? "\r\n.\r\n" : "\r\n";
+    const size_t bufferSize = 8192;
+    ubyte[bufferSize] buffer;
+    //string end = (multiline == Yes.multiline) ? "\r\n.\r\n" : "\r\n";
     string result;
     ptrdiff_t len;
 
+    m_buffer.reset;
+    import std.stdio; writeln("Buffer size 1: ", m_buffer.length);
+	
     do {
       try {
 	if (m_ssl !is null || _secure == true) {
-	  len = SSL_read(_ssl, m_buffer.ptr, m_buffer.length);
+	  len = SSL_read(_ssl, buffer.ptr, buffer.length);
 	} else {
-	  len = m_socket.receive(m_buffer);
-	}
+	  len = m_socket.receive(buffer);
+	}	
       }
       catch (SocketException e) {
 	throw new SpaminexException(e.msg, "Failure to receive message.");
@@ -137,10 +146,11 @@ public:
       } else if (len == Socket.ERROR) {
 	throw new SpaminexException("Failure receiving data.","Socket Error");
       }
-      result~=m_buffer[0..cast(int)len].to!string;
-    } while (!result.endsWith(end));
+      m_buffer.write(buffer[0..len]);
 
-    return result;
+      //      result~=m_buffer[0..cast(int)len].to!string;
+    } while (len == bufferSize);
+    return m_buffer;
   }
 
 

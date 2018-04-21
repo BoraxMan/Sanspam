@@ -1,4 +1,6 @@
+import std.typecons;
 import std.string;
+import buffer;
 import socket;
 import config;
 import message;
@@ -15,15 +17,15 @@ immutable char[] ERROR = "-ERR";
 class Pop3 : MailProtocol
 {
 private:
-  bool evaluateMessage(immutable ref string message) const @safe
+  final MessageStatus evaluateMessage(const ref string message) const @safe
   {
     //  Whether there response is OK or ERROR.
     if (message.startsWith(OK)) {
-      return true;
+      return MessageStatus.OK;
     } else if(message.startsWith(ERROR)) {
-      return false;
+      return MessageStatus.BAD;
     } else {
-      throw new SpaminexException("Malformed server response","Could not determine message success.");
+      return MessageStatus.INCOMPLETE;
     }
   }
   
@@ -36,7 +38,7 @@ public:
     if (port == 995) {
       m_socket.startSSL;
     }
-    immutable auto b = m_socket.receive();
+    immutable auto b = m_socket.receive.bufferToString();
     if(!evaluateMessage(b)) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
     }
@@ -54,7 +56,7 @@ public:
   {
     string UIDquery = "UIDL "~messageNumber.to!string;
     immutable auto UIDresponse = query(UIDquery);
-    if (UIDresponse.isValid == false) {
+    if (UIDresponse.status == MessageStatus.BAD) {
       throw new SpaminexException("POP3 transfer failure", "Failed to execute query "~UIDquery);
     } else {
       immutable auto results = UIDresponse.contents.split;
@@ -66,7 +68,7 @@ public:
   final void getCapabilities() @safe
   {
     immutable auto response = query("CAPA");
-    if (response.isValid == false)
+    if (response.status == MessageStatus.BAD)
       return;
     immutable auto results = split(response.contents);
     foreach (x; results) {
@@ -84,12 +86,12 @@ public:
   {
     string loginQuery = "USER "~username;
     auto x = query(loginQuery);
-    if (!x.isValid)
+    if (x.status == MessageStatus.BAD)
       return false;
 
     loginQuery = "PASS "~password;
     x = query(loginQuery);
-    if (!x.isValid) {
+    if (x.status == MessageStatus.BAD) {
       m_connected = false;
       return false;
     }
@@ -98,21 +100,32 @@ public:
     getCapabilities;
     return false;
   }
-  
-  override final queryResponse query(in string command, bool multiline = false) @safe 
+
+
+  override final queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe 
   {
+    string end = (multiline == Yes.multiline) ? "\r\n.\r\n" : "\r\n";
     queryResponse response;
     m_socket.send(command~endline);
-    immutable string message = m_socket.receive(multiline);
+
+    Buffer buffer = m_socket.receive;
+    auto message = buffer.text;
+
 
     // Evaluate response.
-    immutable bool isOK = evaluateMessage(message);
-    
-    if (isOK) {
-      response.isValid = true;
+    //    immutable MessageStatus responseStatus = evaluateMessage(message);
+    immutable MessageStatus isOK = evaluateMessage(message);
+    while (isOK == MessageStatus.INCOMPLETE) {
+      buffer.reset;
+      buffer = m_socket.receive;
+      message ~= buffer.text;
+    }
+
+    if (isOK == MessageStatus.OK) {
+      response.status = MessageStatus.OK;
       response.contents = message.chompPrefix(OK);
     } else if(!isOK) {
-      response.isValid = false;
+      response.status = MessageStatus.BAD;
       response.contents = message.chompPrefix(ERROR);
     }
     return response;
@@ -145,7 +158,7 @@ public:
   // Returns the number of e-mails, or -1 in case of error.
   {
     immutable auto response = query("STAT");
-    if (response.isValid == false)
+    if (response.status == MessageStatus.BAD)
       return 0;
 
     immutable auto result = response.contents.split;
@@ -168,9 +181,9 @@ public:
     for(int x = 1; x <= m_mailboxSize; x++)
       {
 	Message m;
-	string messageQuery = "TOP "~x.to!string;
-	immutable auto response = query(messageQuery,true);
-	if (response.isValid == false) {
+	string messageQuery = "TOP "~x.to!string~" 0";
+	immutable auto response = query(messageQuery, Yes.multiline);
+	if (response.status == MessageStatus.BAD) {
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	m = pmd.messageFactory(response.contents);

@@ -7,17 +7,11 @@ private:
   
 public:
   
-  this(string msg) @safe pure
+  this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null) @safe pure nothrow
   {
-    super(msg);
+    super(msg, file, line, next);
   }
 
-  this(string error_type, string msg) @safe pure
-  {
-    super(msg);
-    m_errortype = error_type;
-  }
-  
   string getErrorType() const @safe pure
   {
     return m_errortype;

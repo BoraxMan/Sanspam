@@ -1,10 +1,11 @@
 import std.algorithm;
 import std.conv;
-import std.typecons : Tuple;
+import std.typecons;
 import std.string;
 import std.format;
 import std.array;
 import std.exception;
+import buffer;
 import imapparse;
 import socket;
 import mailprotocol;
@@ -20,8 +21,6 @@ immutable string recent = "\\Recent";
 
 immutable string prefix = "Spaminex";
 
-alias queryResponse = Tuple!(bool, "isValid", string, "contents");
-
 struct commandPrefix
 {
   int m_sequence;
@@ -36,6 +35,7 @@ struct commandPrefix
     return currentPrefix;
   }
 }
+
 
 class IMAP : MailProtocol
 {
@@ -59,19 +59,23 @@ private:
 
 
   
-  final bool evaluateMessage(in string message, in string commandPrefix) const @safe
+  final MessageStatus evaluateMessage(in string message, in string commandPrefix) const @safe
   {
+    //  Change to enum
+    // Good = OK response.
+    // Bad = BAD response.
+    // If command prefix not found, send "INCOMPLETE" and try to receive more information.
     foreach(ref line; message.lineSplitter) {
       if (line.startsWith(commandPrefix)) {
 	auto x = split(line);
 	if (x[1] == "OK") {
-	  return true;
+	  return MessageStatus.OK;
 	} else {
-	  return false;
+	  return MessageStatus.BAD;
 	}
       }
-    }
-    return true;
+    } // If we didn't find the command prefix, it is incomplete. 
+    return MessageStatus.INCOMPLETE;
   }
 
 
@@ -88,7 +92,7 @@ public:
       }
     }
 
-    immutable string b = m_socket.receive();
+    immutable string b = m_socket.receive.bufferToString();
     if(!evaluateMessage(b,".")) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
     }
@@ -96,10 +100,19 @@ public:
 
   override final bool login(in string username, in string password) @safe
   {
-    auto x = query("LOGIN "~username~" "~password,false);
-    if (!x.isValid)
+    auto x = query("LOGIN "~username~" "~password,No.multiline);
+    if (x.status == MessageStatus.BAD)
       return false;
     getCapabilities(x.contents);
+    m_folderList = folderList;
+
+    foreach(folder; m_folderList)
+      {
+	if (folder.name.toUpper == "INBOX") {
+	  currentFolder = folder;
+	}
+      }
+    selectFolder(currentFolder);
     return true;
   }
 
@@ -156,8 +169,8 @@ public:
   {
     queryResponse response;
     immutable string thisQuery = "LIST \"\" \"%\"";
-    response = query(thisQuery,false);
-    if (!response.isValid) {
+    response = query(thisQuery, No.multiline);
+    if (response.status == MessageStatus.BAD) {
       return;
     }
     m_folderList = parseFolderList(response.contents);
@@ -180,16 +193,16 @@ public:
       {
 	Message m;
 	messageQuery = "FETCH "~x.to!string~" BODY[HEADER]";
-	response = query(messageQuery,false);
+	response = query(messageQuery, Yes.multiline);
 
-	if (response.isValid == false) {
+	if (response.status == MessageStatus.BAD) {
 	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	m = pmd.messageFactory(response.contents);
 	if (m_supportUID) {
 	  messageQuery = "FETCH "~x.to!string~" UID";
-	  auto response2 = query(messageQuery,false);
-	  if (response.isValid == false) {
+	  auto response2 = query(messageQuery, No.multiline);
+	  if (response.status == MessageStatus.BAD) {
 	    throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	  }
 	  string uid = parseUID(response2.contents);
@@ -205,7 +218,7 @@ public:
   // Returns the number of e-mails, or -1 in case of error.
   {
     immutable auto response = query("STAT");
-    if (response.isValid == false)
+    if (response.status == MessageStatus.BAD)
       return 0;
 
     immutable auto result = response.contents.split;
@@ -222,7 +235,7 @@ public:
     queryResponse response;
     response = query("SELECT "~currentFolder.name);
 
-    if(!response.isValid) {
+    if(response.status == MessageStatus.BAD) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
     }
 
@@ -237,24 +250,35 @@ public:
     }
     return;
   }
-
   
-  override final queryResponse query(in string command, bool multiline = false) @safe
+  
+  override final queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe
   {
+    string end = (multiline == Yes.multiline) ? "\r\n.\r\n" : "\r\n";
     queryResponse response;
     m_socket.send(prefix()~command~endline);
-    immutable string message = m_socket.receive(multiline);
+    
+    Buffer buffer = m_socket.receive;
+    response.contents = buffer.text;
+    debug { import std.stdio; writeln(" MESSAGE : ", response.contents);}
 
     // Evaluate response.
-    immutable bool isOK = evaluateMessage(message, prefix.currentPrefix);
-    if (isOK) {
-      response.isValid = true;
+    immutable MessageStatus isOK = evaluateMessage(response.contents, prefix.currentPrefix);
+    debug prefix.currentPrefix.writeln;
+    while (isOK == MessageStatus.INCOMPLETE) {
+      buffer.reset;
+      buffer = m_socket.receive;
+      response.contents ~= buffer.text;
+    }
+    /*
+    if (isOK == MessageStatus.OK) {
       response.contents = chompQueryPrefix(message, prefix.currentPrefix);
     } else if (!isOK) {
       response.isValid = false;
       response.contents = chompQueryPrefix(message, prefix.currentPrefix);
-
+    } else if
     }
+    */
     return response;
   }
     
@@ -262,7 +286,7 @@ public:
   {
     string UIDquery = "FETCH "~messageNumber.to!string~" UID";
     immutable auto UIDresponse = query(UIDquery);
-    if (UIDresponse.isValid == false) {
+    if (UIDresponse.status == MessageStatus.BAD) {
       throw new SpaminexException("IMAP transfer failure", "Failed to execute query "~UIDquery);
     } else {
       immutable auto results = parseUID(UIDresponse.contents);
@@ -275,14 +299,14 @@ public:
   {
     // First expunge
     auto response = query("EXPUNGE");
-    if (response.isValid == false) {
+    if (response.status == MessageStatus.BAD) {
       throw new SpaminexException("Failed delete messages on server.","E-mails marked for deletion may not be deleted.");
     }
 
     
     auto messageQuery = getQueryFormat(Command.Close);
     response = query(messageQuery);
-    if (response.isValid == false) {
+    if (response.status == MessageStatus.BAD) {
       throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
     }
 

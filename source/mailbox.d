@@ -144,7 +144,11 @@ public:
 
   final bool remove(in int messageNumber, in string uidl = "", in string trashFolder = "")
   {
-    return m_connection.remove(messageNumber, uidl, trashFolder);
+    bool isOK = m_connection.remove(messageNumber, uidl, trashFolder);
+    if (isOK == MessageStatus.OK) {
+      return true;
+    }
+    return false;
   }
   
   final bool remove(in string uidl)

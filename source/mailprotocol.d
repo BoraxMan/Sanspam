@@ -1,5 +1,6 @@
 // Super class for Mail protocol handling.
-import std.typecons : Tuple;
+import std.outbuffer;
+import std.typecons;
 import std.string;
 import std.array;
 import std.format;
@@ -10,14 +11,18 @@ import socket;
 import spaminexexception;
 import processline;
 
-alias queryResponse = Tuple!(bool, "isValid", string, "contents");
-
 struct Encrypted {} // May get implemented later.
 struct ConfigOption {} // May be used later.
 
 alias string[] flaglist;
 alias string[] capabilities;
 alias Folder[] FolderList;
+
+enum MessageStatus {
+  OK,
+  BAD,
+  INCOMPLETE
+}
 
 enum Command {
   Delete,
@@ -32,6 +37,16 @@ struct Folder {
   string name;
   size_t numberMessages;
 }
+
+alias queryResponse = Tuple!(MessageStatus, "status", string, "contents");
+
+string bufferToString(OutBuffer buffer) @trusted
+  {
+    auto message = buffer.toString;
+    return message;
+  }
+  
+
 
 string insertValue(in string format, in int value)
 {
@@ -131,7 +146,7 @@ public:
   abstract FolderList folderList() @safe;
   abstract bool loadMessages() @safe;
   abstract void selectFolder(ref Folder folder) @safe;
-  abstract queryResponse query(in string command, bool multiline = false) @safe;
+  abstract queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe;
   abstract string getQueryFormat(Command command) @safe pure;
 
 
@@ -139,7 +154,7 @@ public:
   {
     immutable string message = "STARTTLS";
     auto x = query(message);
-    if (!x.isValid)
+    if (x.status == MessageStatus.BAD)
       return false;
 
     m_socket.startSSL(method);
@@ -150,7 +165,7 @@ public:
   {
     string messageQuery = getQueryFormat(Command.Close);
     auto response = query(messageQuery);
-    if (response.isValid == false) {
+    if (response.status == MessageStatus.BAD) {
       throw new SpaminexException(response.contents,response.contents);
     }
     
@@ -217,7 +232,7 @@ public:
       if (trashFolder != "") { // A folder has been specified.
 	string trashMessageQuery = insertValueAndString(getQueryFormat(Command.Copy),messageNumber, trashFolder);
 	auto trashResponse = query(trashMessageQuery);
-	if (!trashResponse.isValid) {
+	if (trashResponse.status == MessageStatus.BAD) {
 	  throw new SpaminexException("Could not move message to Trash", "Error moving message to "~trashFolder~".  Options are to check the correct Trash folder is specified, or delete the message without moving to Trash.");
 	}
       }
@@ -225,10 +240,10 @@ public:
 
       string messageQuery = insertValue(getQueryFormat(Command.Delete), messageNumber);
       auto response = query(messageQuery);
-      if (response.isValid) {
+      if (response.status == MessageStatus.OK) {
 	m_messages[messageNumber].deleted = true;
+	return true;
       }
-      return response.isValid;    
     }
     return false;
   }
