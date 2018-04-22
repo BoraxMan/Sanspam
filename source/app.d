@@ -66,7 +66,7 @@ int main()
 
   }
   
-  /*  
+  
   initCurses;
   mainWindow;
   createStatusWindow;

@@ -122,7 +122,7 @@ public:
   bool send(in string message) @trusted
   {
     bool status;
-    import std.stdio; writeln("SENDING :", message);
+    debug { import std.stdio; writeln("SENDING :", message);}
     try {
       if (m_ssl !is null || _secure == true) {
 	status = SSL_write(_ssl,message.ptr, message.length.to!int) >= 0;
@@ -147,7 +147,7 @@ public:
     ptrdiff_t len;
 
     m_buffer.reset;
-    import std.stdio; writeln("Buffer size 1: ", m_buffer.length);
+    debug { import std.stdio; writeln("Buffer size 1: ", m_buffer.length); }
 	
     do {
       try {

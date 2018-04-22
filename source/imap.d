@@ -282,12 +282,14 @@ public:
     debug { import std.stdio; writeln(" MESSAGE : ", response.contents);}
 
     // Evaluate response.
-    immutable MessageStatus isOK = evaluateMessage(response.contents, prefix.currentPrefix);
-    debug prefix.currentPrefix.writeln;
+    MessageStatus isOK = evaluateMessage(response.contents, prefix.currentPrefix);
+
     while (isOK == MessageStatus.INCOMPLETE) {
       buffer.reset;
       buffer = m_socket.receive;
+      debug { import std.stdio; writeln(" ADDIOTIONAL BUFFER : ", buffer.text);}
       response.contents ~= buffer.text;
+      isOK = evaluateMessage(response.contents, prefix.currentPrefix);
     }
     /*
     if (isOK == MessageStatus.OK) {
