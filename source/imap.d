@@ -137,10 +137,14 @@ public:
 
   final void getCapabilities(in string serverResponse) @safe
   {
+	import std.stdio;writeln("GET UIDL");
+
     m_capabilities = parse_capability_list(serverResponse);
+    writeln("SERVER RESPONSE :",serverResponse);
     foreach(ref x; m_capabilities) {
       switch (x.toLower) {
       case "uid":
+	import std.stdio;writeln("SUPPORTS UIDL");
 	m_supportUID = true;
 	break;
       case "uidplus":
@@ -200,6 +204,7 @@ public:
   
   override final bool loadMessages() @safe
   {
+    m_supportUID = true;
     selectFolder(currentFolder);
 
     queryResponse response;

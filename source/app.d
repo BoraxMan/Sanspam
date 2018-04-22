@@ -50,7 +50,9 @@ int main()
       auto except = new ExceptionHandler(e);
       except.display;
     }
-    
+  }
+  
+  /*    
     try {
       mailbox.loadMessages;
     } catch (SpaminexException e) {
@@ -58,14 +60,13 @@ int main()
       except.display;
     }
 
+
     foreach(ref m; mailbox)
       {
 	writeln(m.subject);
-	writeln(m.uidl);
+	writeln("UIDL", m.uidl);
       }
-
-  }
-  
+  */
   
   initCurses;
   mainWindow;

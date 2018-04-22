@@ -238,6 +238,8 @@ public:
       }
 
   body {
+    debug { import std.stdio; writeln("Deleting"); }
+ 
     // Check the UID matches the message number we are deleting, if we have UID supported that is.
     if (m_supportUID) {
       immutable bool result = checkUID(uidl, messageNumber);
