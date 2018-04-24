@@ -86,7 +86,7 @@ public:
 
   final void getCapabilities() @safe
   {
-    immutable auto response = query("CAPA");
+    immutable auto response = query(getQueryFormat(Command.Capability));
     if (response.status == MessageStatus.BAD)
       return;
     immutable auto results = split(response.contents);
@@ -164,6 +164,9 @@ public:
 	break;
       case Command.Logout:
 	commandText = "LOGOUT";
+	break;
+      case Command.Capability:
+	commandText = "CAPA";
 	break;
       default:
 	break;

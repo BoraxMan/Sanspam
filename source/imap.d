@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+debug { import std.stdio; }
 import std.algorithm;
 import std.conv;
 import std.typecons;
@@ -122,7 +122,7 @@ public:
     auto x = query("LOGIN "~username~" "~password,No.multiline);
     if (x.status == MessageStatus.BAD)
       return false;
-    getCapabilities(x.contents);
+    getCapabilities();
     m_folderList = folderList;
 
     foreach(folder; m_folderList)
@@ -135,16 +135,18 @@ public:
     return true;
   }
 
-  final void getCapabilities(in string serverResponse) @safe
+  final void getCapabilities() @safe
   {
-	import std.stdio;writeln("GET UIDL");
+    immutable auto serverResponse = query(getQueryFormat(Command.Capability));
+    m_capabilities = parse_capability_list(serverResponse.contents);
+    if (serverResponse.status == MessageStatus.BAD) {
+      m_supportUID = false;
+      throw new SpaminexException("Failed to get IMAP Capabilities.", "Capabilities command failed for IMAP.  Using default capabilities.");
+    }
 
-    m_capabilities = parse_capability_list(serverResponse);
-    writeln("SERVER RESPONSE :",serverResponse);
     foreach(ref x; m_capabilities) {
       switch (x.toLower) {
       case "uid":
-	import std.stdio;writeln("SUPPORTS UIDL");
 	m_supportUID = true;
 	break;
       case "uidplus":
@@ -175,6 +177,9 @@ public:
       case Command.Copy:
 	commandText = "COPY %d %s";
 	break;
+      case Command.Capability:
+	commandText = "CAPABILITY";
+	break;
       default:
 	break;
       }
@@ -204,7 +209,6 @@ public:
   
   override final bool loadMessages() @safe
   {
-    m_supportUID = true;
     selectFolder(currentFolder);
 
     queryResponse response;

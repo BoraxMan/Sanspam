@@ -47,6 +47,7 @@ enum Command {
   Delete,
   Close,
   Logout,
+  Capability,
   Copy  // IMAP Only.
 }
 
