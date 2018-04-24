@@ -43,6 +43,7 @@ private:
   bool m_deleted = false;
   bool m_bounce = false;
   bool m_isSpam = false; // Innocent until proven guilty.
+  bool m_loaded = false;
   
 public:
 
@@ -77,6 +78,17 @@ public:
       }
   }
   // Properties
+
+  @property bool loaded() @safe const pure nothrow
+  {
+    return m_loaded;
+  }
+
+  @property void loaded(in bool _loaded) @safe pure nothrow
+  {
+    m_loaded = _loaded;
+  }
+  
   @property bool deleted() @safe const pure nothrow
   {
     return m_deleted;

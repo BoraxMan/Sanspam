@@ -239,15 +239,12 @@ public:
       }
 
   body {
-    debug { import std.stdio; writeln("Deleting"); }
- 
     // Check the UID matches the message number we are deleting, if we have UID supported that is.
     if (m_supportUID) {
       immutable bool result = checkUID(uidl, messageNumber);
       if (!result) {
 	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(messageNumber)~" instead.");
       }
-
       // If we got this far, we don't have a UID to check against, or the check passed.  So delete the message.
 
       // But first, if we have specified a Trash folder, copy to trash.

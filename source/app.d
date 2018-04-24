@@ -38,6 +38,7 @@ int main()
   scope(exit) {
     endwin;
   }
+  /*
   debug {
     writeln("Debug mode");
     Mailbox mailbox;
@@ -52,7 +53,7 @@ int main()
     }
   }
   
-  /*    
+      
     try {
       mailbox.loadMessages;
     } catch (SpaminexException e) {
@@ -60,12 +61,6 @@ int main()
       except.display;
     }
 
-
-    foreach(ref m; mailbox)
-      {
-	writeln(m.subject);
-	writeln("UIDL", m.uidl);
-      }
   */
   
   initCurses;

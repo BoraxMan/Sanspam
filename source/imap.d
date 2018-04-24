@@ -228,13 +228,7 @@ public:
 	}
 	m = pmd.messageFactory(response.contents);
 	if (m_supportUID) {
-	  messageQuery = "FETCH "~x.to!string~" UID";
-	  auto response2 = query(messageQuery, No.multiline);
-	  if (response.status == MessageStatus.BAD) {
-	    throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
-	  }
-	  string uid = parseUID(response2.contents);
-	  m.uidl = uid;
+	  m.uidl = getUID(x);
 	}
 	m_messages.add(m);
 
@@ -314,8 +308,9 @@ public:
     
   override final string getUID(in int messageNumber) @safe
   {
+    import std.stdio;writeln("GETUID");
     string UIDquery = "FETCH "~messageNumber.to!string~" UID";
-    immutable auto UIDresponse = query(UIDquery);
+    immutable auto UIDresponse = query(UIDquery, No.multiline);
     if (UIDresponse.status == MessageStatus.BAD) {
       throw new SpaminexException("IMAP transfer failure", "Failed to execute query "~UIDquery);
     } else {

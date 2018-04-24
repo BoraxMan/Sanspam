@@ -130,7 +130,7 @@ public:
 	status = m_socket.send(message) == message.length;
       }
     } catch (SocketException e) {
-      throw new SpaminexException(e.msg, "Failure to receive message.");
+      throw new SpaminexException(e.msg, "Failure to send message.");
     }
     //import std.stdio; message.writeln;
     return status;
