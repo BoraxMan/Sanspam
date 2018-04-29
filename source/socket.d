@@ -266,59 +266,5 @@ public:
             _sslCtx = null;
         }
     }
-  /*
-
-  final bool startSSL(EncryptionMethod method = EncryptionMethod.TLSv1_2) @trusted
-  {
-    
-    OPENSSL_config("");
-    //    SSL_library_init();
-    //    SSL_load_error_strings();
-
-    switch(method)
-      {
-      case EncryptionMethod.TLSv1:
-	m_sslMethod = cast(SSL_METHOD*) TLSv1_client_method();
-	break;
-      case EncryptionMethod.TLSv1_1:
-	m_sslMethod = cast(SSL_METHOD*) TLSv1_2_client_method();
-	break;
-      case EncryptionMethod.TLSv1_2:
-	m_sslMethod = cast(SSL_METHOD*) TLSv1_2_client_method();
-	break;
-      case EncryptionMethod.None:
-	return false;
-      default:
-	return false;
-      }
- 
-    m_sslCTX = SSL_CTX_new(cast(const(SSL_METHOD*))(m_sslMethod));
-    if (m_sslCTX is null) {
-      throw new SpaminexException("SSL Error", "Could not create SSL Socket Connection");
-    }
-    
-    m_ssl = SSL_new(m_sslCTX);
-    if (m_ssl is null) {
-      throw new SpaminexException("SSL Error", "Could not initiate new SSL connection");
-      
-    }
-    
-    SSL_set_fd(m_ssl, m_socket.handle);
-    
-    m_x509 = SSL_get_peer_certificate(m_ssl);
-    if(m_x509 is null) {
-      throw new SpaminexException("SSL Error", "Could not get peer x509 certificate.");
-    }
-    
-    if (SSL_get_verify_result(m_ssl) != X509_V_OK) {
-      m_verified = true;
-    } else {
-      m_verified = false;
-    }
-    return false; 
-  }
-
-  */
-
 }
 

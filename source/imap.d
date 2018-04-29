@@ -205,8 +205,6 @@ public:
     return;
   }
 
-
-  
   override final bool loadMessages() @safe
   {
     selectFolder(currentFolder);
@@ -308,7 +306,6 @@ public:
     
   override final string getUID(in int messageNumber) @safe
   {
-    import std.stdio;writeln("GETUID");
     string UIDquery = "FETCH "~messageNumber.to!string~" UID";
     immutable auto UIDresponse = query(UIDquery, No.multiline);
     if (UIDresponse.status == MessageStatus.BAD) {

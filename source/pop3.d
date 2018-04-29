@@ -27,6 +27,7 @@ import mailprotocol;
 import spaminexexception;
 import std.exception;
 import std.conv;
+import std.algorithm;
 import processline;
 import exceptionhandler;
 
@@ -36,14 +37,26 @@ immutable char[] ERROR = "-ERR";
 class Pop3 : MailProtocol
 {
 private:
-  final MessageStatus evaluateMessage(const ref string message) const @safe
+  final MessageStatus evaluateMessage(const ref string message, Flag!"multiline" multiline) const @safe
   {
+    string end = (multiline == Yes.multiline) ? "\r\n.\r\n" : "\r\n";
+
+    if ((multiline == Yes.multiline) && (!message.endsWith(end))) {
+      return MessageStatus.INCOMPLETE;
+    }
+
     //  Whether there response is OK or ERROR.
     if (message.startsWith(OK)) {
+      import std.stdio; "OK".writeln;
+
       return MessageStatus.OK;
     } else if(message.startsWith(ERROR)) {
+import std.stdio;      "BAD".writeln;
+
       return MessageStatus.BAD;
     } else {
+            import std.stdio;"INCOMPLETE".writeln;
+
       return MessageStatus.INCOMPLETE;
     }
   }
@@ -58,7 +71,7 @@ public:
       m_socket.startSSL;
     }
     immutable auto b = m_socket.receive.bufferToString();
-    if(!evaluateMessage(b)) {
+    if(evaluateMessage(b, No.multiline) == MessageStatus.BAD) {
       throw new SpaminexException("Cannot create socket","Could not create connection with server.");
     }
   }
@@ -123,27 +136,29 @@ public:
 
   override final queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe 
   {
-    string end = (multiline == Yes.multiline) ? "\r\n.\r\n" : "\r\n";
     queryResponse response;
     m_socket.send(command~endline);
 
     Buffer buffer = m_socket.receive;
     auto message = buffer.text;
-
-
+    //    buffer.reset;
     // Evaluate response.
     //    immutable MessageStatus responseStatus = evaluateMessage(message);
-    immutable MessageStatus isOK = evaluateMessage(message);
+    MessageStatus isOK = evaluateMessage(message, multiline);
+    
     while (isOK == MessageStatus.INCOMPLETE) {
       buffer.reset;
       buffer = m_socket.receive;
       message ~= buffer.text;
+      isOK = evaluateMessage(message, multiline);
+      import std.stdio; writeln(buffer.text);
     }
 
     if (isOK == MessageStatus.OK) {
       response.status = MessageStatus.OK;
       response.contents = message.chompPrefix(OK);
-    } else if(!isOK) {
+      import std.stdio; writeln(response.contents);
+    } else if(isOK == MessageStatus.BAD) {
       response.status = MessageStatus.BAD;
       response.contents = message.chompPrefix(ERROR);
     }
