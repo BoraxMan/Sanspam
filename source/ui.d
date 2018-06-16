@@ -306,7 +306,7 @@ void initCurses()
   init_pair(ColourPairs.MenuFore, COLOR_YELLOW, COLOR_BLUE);
   init_pair(ColourPairs.MenuBack, COLOR_GREEN, COLOR_BLACK);
   init_pair(ColourPairs.AccountMenuFore, COLOR_WHITE, COLOR_RED);
-  init_pair(ColourPairs.AccountMenuBack, COLOR_BLUE, COLOR_BLACK);
+  init_pair(ColourPairs.AccountMenuBack, COLOR_WHITE, COLOR_BLACK);
   init_pair(ColourPairs.StandardText, COLOR_WHITE, COLOR_BLACK);
   
   cbreak;

@@ -23,7 +23,9 @@ import std.typecons;
 import std.string;
 import std.format;
 import std.array;
+import std.regex;
 import std.exception;
+import std.range;
 import buffer;
 import imapparse;
 import socket;
@@ -214,7 +216,7 @@ public:
     m_messages.clear; // We load all again.  Clear any existing messages.
     
     ProcessMessageData pmd = new ProcessMessageData();
-    
+    /*
     for(int x = 1; x <= m_mailboxSize; x++)
       {
 	Message m;
@@ -231,6 +233,42 @@ public:
 	m_messages.add(m);
 
       }
+    */
+    messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" BODY[HEADER]";
+    response = query(messageQuery, Yes.multiline);
+    
+    if (response.status == MessageStatus.BAD) {
+      throw new SpaminexException("Read Error","Failed to download e-mails.");
+    }
+
+    auto splitEmails = splitter(response.contents,regex(r"^\* [0-9]+ FETCH.*","m"));
+    splitEmails.popFront; // Discard the first one, as its the null space between the first "* FETCH" line.
+
+    if (m_supportUID) {
+      messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" UID";
+      response = query(messageQuery, Yes.multiline);
+      
+      if (response.status == MessageStatus.BAD) {
+	throw new SpaminexException("Read Error","Failed to download UIDs.");
+      }
+    }
+
+    auto splitUIDs = splitter(response.contents,regex(r"^\* [0-9]+ FETCH","m"));
+    splitUIDs.popFront; // Discard the first one, as its the null space between the first "* FETCH" line.
+    string[] uids;
+
+    foreach(u; splitUIDs) {
+      uids~=parseUID(u);
+    }
+    foreach(enumerator,message; splitEmails.enumerate(0))
+      {
+	Message m;
+	m = pmd.messageFactory(message);
+	m_messages.add(m);
+	if (m_supportUID) {
+	  m.uidl = uids[enumerator];
+	}
+    }
     return true;
   }
   

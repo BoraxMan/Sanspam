@@ -47,16 +47,10 @@ private:
 
     //  Whether there response is OK or ERROR.
     if (message.startsWith(OK)) {
-      import std.stdio; "OK".writeln;
-
       return MessageStatus.OK;
     } else if(message.startsWith(ERROR)) {
-import std.stdio;      "BAD".writeln;
-
       return MessageStatus.BAD;
     } else {
-            import std.stdio;"INCOMPLETE".writeln;
-
       return MessageStatus.INCOMPLETE;
     }
   }
@@ -151,13 +145,11 @@ public:
       buffer = m_socket.receive;
       message ~= buffer.text;
       isOK = evaluateMessage(message, multiline);
-      import std.stdio; writeln(buffer.text);
     }
 
     if (isOK == MessageStatus.OK) {
       response.status = MessageStatus.OK;
       response.contents = message.chompPrefix(OK);
-      import std.stdio; writeln(response.contents);
     } else if(isOK == MessageStatus.BAD) {
       response.status = MessageStatus.BAD;
       response.contents = message.chompPrefix(ERROR);
