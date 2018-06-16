@@ -24,7 +24,7 @@ import std.array;
 import std.stdio;
 import std.string;
 
-immutable string TOK_FLAGS="FLAGS";
+string TOK_FLAGS="FLAGS";
 
 capabilities parse_capability_list(in string response) @safe pure
 {

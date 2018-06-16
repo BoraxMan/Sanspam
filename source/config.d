@@ -35,8 +35,8 @@ import std.stdio;
 import std.typecons;
 import std.uni : toLower;
 
-immutable string separator = "=";
-immutable string filename = "accounts.conf";
+string separator = "=";
+string filename = "accounts.conf";
 
 Config[string] configurations;
 Config currentConfig;

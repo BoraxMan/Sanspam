@@ -35,12 +35,12 @@ import processline;
 import spaminexexception;
 import exceptionhandler;
 
-immutable string seen = "\\Seen";
-immutable string answered = "\\Answered";
-immutable string deleted = "\\Deleted";
-immutable string recent = "\\Recent";
+string seen = "\\Seen";
+string answered = "\\Answered";
+string deleted = "\\Deleted";
+string recent = "\\Recent";
 
-immutable string prefix = "Spaminex";
+string prefix = "Spaminex";
 
 struct commandPrefix
 {

@@ -31,8 +31,8 @@ import std.algorithm;
 import processline;
 import exceptionhandler;
 
-immutable char[] OK = "+OK";
-immutable char[] ERROR = "-ERR";
+string OK = "+OK";
+string ERROR = "-ERR";
 
 class Pop3 : MailProtocol
 {
