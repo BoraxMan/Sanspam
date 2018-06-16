@@ -140,27 +140,15 @@ public:
   final void getCapabilities() @safe
   {
     immutable auto serverResponse = query(getQueryFormat(Command.Capability));
-    m_capabilities = parse_capability_list(serverResponse.contents);
+    m_capabilities = parse_capability_list(serverResponse.contents.toUpper);
     if (serverResponse.status == MessageStatus.BAD) {
       m_supportUID = false;
       throw new SpaminexException("Failed to get IMAP Capabilities.", "Capabilities command failed for IMAP.  Using default capabilities.");
     }
-
-    foreach(ref x; m_capabilities) {
-      switch (x.toLower) {
-      case "uid":
-	m_supportUID = true;
-	break;
-      case "uidplus":
-	m_supportUID = true;
-	break;
-      default:
-	break;
-      }
-      
-    }
-    
+    if (find(m_capabilities, "UID").length) m_supportUID = true;
+    if (find(m_capabilities, "UIDPLUS").length) m_supportUID = true;
   }
+  
   override final string getQueryFormat(Command command) @safe pure
   {
     string commandText;
@@ -216,24 +204,7 @@ public:
     m_messages.clear; // We load all again.  Clear any existing messages.
     
     ProcessMessageData pmd = new ProcessMessageData();
-    /*
-    for(int x = 1; x <= m_mailboxSize; x++)
-      {
-	Message m;
-	messageQuery = "FETCH "~x.to!string~" BODY[HEADER]";
-	response = query(messageQuery, Yes.multiline);
 
-	if (response.status == MessageStatus.BAD) {
-	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
-	}
-	m = pmd.messageFactory(response.contents);
-	if (m_supportUID) {
-	  m.uidl = getUID(x);
-	}
-	m_messages.add(m);
-
-      }
-    */
     messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" BODY[HEADER]";
     response = query(messageQuery, Yes.multiline);
     

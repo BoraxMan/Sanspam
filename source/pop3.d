@@ -96,18 +96,12 @@ public:
     immutable auto response = query(getQueryFormat(Command.Capability));
     if (response.status == MessageStatus.BAD)
       return;
-    immutable auto results = split(response.contents);
-    foreach (x; results) {
-      if (x.toUpper == "UIDL") {
-	m_supportUID = true;
-      } else if (x.toUpper == "TOP") {
-	m_supportTOP = true;
-      }
-    }
+    immutable auto results = split(response.contents.toUpper);
+    if (find(results, "UIDL").length) m_supportUID = true;
+    if (find(results, "TOP").length) m_supportTOP = true;
   }
+
   
-  
-    
   override final bool login(in string username, in string password) @safe
   {
     string loginQuery = "USER "~username;
