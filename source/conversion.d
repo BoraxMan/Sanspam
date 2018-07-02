@@ -25,13 +25,13 @@ import std.base64;
 import std.encoding;
 import spaminexexception;
 
-string utfSeqStart = "=?";
-string utfSeqEnd = "?=";
-string space = x"20";
+immutable string utfSeqStart = "=?";
+immutable string utfSeqEnd = "?=";
+immutable string space = x"20";
 
-string encodingLabelUTF8 = "utf-8";
-string encodingLabelISO_8859_1 = "iso-8859-1";
-string encodingLabelISO_8859_2 = "iso-8859-2";
+immutable string encodingLabelUTF8 = "utf-8";
+immutable string encodingLabelISO_8859_1 = "iso-8859-1";
+immutable string encodingLabelISO_8859_2 = "iso-8859-2";
 
 alias textEncodingType = Tuple!(charsetType, "charset", encodingType, "encoding", ptrdiff_t, "encodeHeaderLength");
 // encodeHeaderLength is where the encoding information ends, and the encoded text starts.

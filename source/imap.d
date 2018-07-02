@@ -40,7 +40,7 @@ string answered = "\\Answered";
 string deleted = "\\Deleted";
 string recent = "\\Recent";
 
-string prefix = "Spaminex";
+immutable string prefix = "Spaminex";
 
 struct commandPrefix
 {
