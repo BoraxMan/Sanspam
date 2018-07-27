@@ -275,12 +275,12 @@ unittest
   string test1 = "TEST %d TEST";
   string result1;
   result1 = insertValue(test1,44);
-  writeln(result1);
+
   assert(result1 == "TEST 44 TEST");
 
   string test2 = "TEST %d %s TEST";
   string result2;
   result2 = insertValueAndString(test2,414, "DENNIS");
-  writeln(result2);
+
   assert(result2 == "TEST 414 DENNIS TEST");
 }

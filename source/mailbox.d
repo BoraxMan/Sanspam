@@ -165,9 +165,9 @@ public:
   {
     bool isOK = m_connection.remove(messageNumber, uidl, trashFolder);
     if (isOK == MessageStatus.OK) {
-      return true;
+      return false;
     }
-    return false;
+    return true;
   }
   
   final bool remove(in string uidl)

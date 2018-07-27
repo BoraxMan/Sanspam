@@ -273,17 +273,17 @@ unittest
     assert(hextoChar!Latin2Char("00") == 0);
   }
   assert(hextoChar!Latin1Char("00") == 0);
-  writeln(decodeText("=?ISO-8859-2?Q?SDF?="));
+  //writeln(decodeText("=?ISO-8859-2?Q?SDF?="));
 
   assert(getCharsetTypeEncodingType("utf-8?Q?stuff").charset == charsetType.UTF8);
   assert(getCharsetTypeEncodingType("utf-8?Q?stuff").encoding == encodingType.ASCII);
 
   assert(getCharsetTypeEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
   assert(getCharsetTypeEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
-  writeln(decodeText("Subject: =?utf-8?Q?Re:_New_loan_listing_=E2=80=93_$75k_for_36_months_?==?utf-8?Q?@15.5%_p.a._Secured_=E2=80=93_1_week_listing_only!?="));
-  writeln(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
-  writeln(decodeText("=?UTF-8?B?2KfZhNiu2LfZiNin2Kog2KfZhNiq2Yog2KrYrNmF2Lkg2KjZitmG?= =?UTF-8?B?INit2YHYuCDYp9mE2YLYsdin2ZPZhiDYp9mE2YPYsdmK2YUg2YjZgQ==?= =?UTF-8?B?2YfZhdmHINmF2YXYpyDYp9mU2YXZhNin2Ycg2KfZhNi52YTYp9mF?= =?UTF-8?B?2Kkg2LnYqNivINin2YTZhNmHINin2YTYutiv2YrYp9mGLnBkZg==?="));
-  writeln(decodeUTF8!Latin1String("Keld_J=F8rn_Simonsen"));
-   writeln(decodeText("Subject: =?UTF-8?Q?Dise=C3=B1o=20de=20P=C3=81GINAS=20W?= =?UTF-8?Q?EB?=,=?UTF-8?Q?=20Posicionate=20en=20Googl?==?UTF-8?Q?e=20y=20Vende=20M=C3=A1s=2E=2E=2E?="));
+  //writeln(decodeText("Subject: =?utf-8?Q?Re:_New_loan_listing_=E2=80=93_$75k_for_36_months_?==?utf-8?Q?@15.5%_p.a._Secured_=E2=80=93_1_week_listing_only!?="));
+  //writeln(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
+  //writeln(decodeText("=?UTF-8?B?2KfZhNiu2LfZiNin2Kog2KfZhNiq2Yog2KrYrNmF2Lkg2KjZitmG?= =?UTF-8?B?INit2YHYuCDYp9mE2YLYsdin2ZPZhiDYp9mE2YPYsdmK2YUg2YjZgQ==?= =?UTF-8?B?2YfZhdmHINmF2YXYpyDYp9mU2YXZhNin2Ycg2KfZhNi52YTYp9mF?= =?UTF-8?B?2Kkg2LnYqNivINin2YTZhNmHINin2YTYutiv2YrYp9mGLnBkZg==?="));
+  //  writeln(decodeUTF8!Latin1String("Keld_J=F8rn_Simonsen"));
+  // writeln(decodeText("Subject: =?UTF-8?Q?Dise=C3=B1o=20de=20P=C3=81GINAS=20W?= =?UTF-8?Q?EB?=,=?UTF-8?Q?=20Posicionate=20en=20Googl?==?UTF-8?Q?e=20y=20Vende=20M=C3=A1s=2E=2E=2E?="));
 
 }

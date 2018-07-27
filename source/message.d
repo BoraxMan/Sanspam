@@ -24,7 +24,6 @@ import std.datetime;
 import std.conv;
 import unfoldtext;
 import processline;
-import imapparse : parenthesisContents;
 
 struct Mandatory {}; // User Defined Attribute.  Set on all Message fields which cannot be left blank.
 
@@ -169,15 +168,6 @@ public:
 
 
 unittest {
-  import std.stdio;
-  ProcessMessageData pmd = new ProcessMessageData();
-  Message m;
-  File file = File("email.txt","r");
-  string s = file.rawRead(new char[3333]).to!string;
-  m = pmd.messageFactory(s);
-  writeln(m.subject);
-  writeln(m.to);
-  writeln(m.from);
-  writeln(m.received);
+
 }
 

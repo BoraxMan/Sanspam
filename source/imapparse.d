@@ -23,6 +23,7 @@ import std.algorithm;
 import std.array;
 import std.stdio;
 import std.string;
+import std.regex;
 
 string TOK_FLAGS="FLAGS";
 
@@ -40,19 +41,19 @@ capabilities parse_capability_list(in string response) @safe pure
   return capability;
 }
 
-size_t parseStatus(in string response) @safe pure
+size_t parseStatus(in string response) @safe 
 {
   return parseUID(response).to!int;
 }
-  
-  
 
-string parseUID(in string response) @safe pure
+string parseUID(in string response) @safe
 {
-  size_t pos;
-  auto text = parenthesisContents(response,'(',')', pos);
-  auto uid = text.split;
-  return uid[1].to!string;
+  auto text = matchFirst(response, regex(r"\([[Uu][Ii][Dd] 0-9]+\)"));
+  if (text.length == 0) {
+    return "";
+  }
+  auto uid = text.hit[5..$-1]; // Convert the digits only.
+  return uid;
 }
   
 flaglist parse_flag_list(in string response) @safe pure
@@ -68,16 +69,12 @@ flaglist parse_flag_list(in string response) @safe pure
   */
   
   flaglist flags = response.strip.split("\\");
+  foreach(ref x; flags) {
+    x = x.strip;  // Strip space at the end and start, if any.
+  }
   return flags[1..$];  // First flag is empty
 }
 
-string parenthesisContents(in string text, in char openparen, in char closeparen, ref size_t closeParenPos) @safe pure
-{
-  auto openParenPos = text.countUntil(openparen);
-  closeParenPos = (text[openParenPos+1..$].countUntil(closeparen)) + openParenPos + 1;
-  return text[openParenPos+1..closeParenPos];
-}
-  
 
 FolderList parseFolderList(in string response) @safe
  {
@@ -92,10 +89,15 @@ FolderList parseFolderList(in string response) @safe
      if (line.startsWith("*")) {
        Folder folder;
        size_t closepos;
-       auto mailboxFlags = parenthesisContents(line,'(',')', closepos);
+       auto result = matchFirst(line, regex(r"\(.+\)"));
+       if (result.length == 0) {
+	 continue;
+       }
+       auto mailboxFlags = result.hit[1..$-1]; // 1..$-1 is to remove the parenthesis.
        folder.flags = parse_flag_list(mailboxFlags);
-       folder.quotedchar = parenthesisContents(line,'\"','\"', closepos);
-       folder.name = strip(line[++closepos..$]);
+       result = matchFirst(line, regex("\".*\""));
+       folder.quotedchar = result.hit[1..$-1];
+       folder.name = strip(result.post);
        folders~=folder;
      }
    }
@@ -106,12 +108,15 @@ FolderList parseFolderList(in string response) @safe
 
 unittest {
   size_t pos;
-  writeln("FLAGS");
-  writeln(parse_flag_list("\\Answered \\Flagged \\Deleted \\Seen \\Draft NonJunk"));
-  FolderList f = parseFolderList("* LIST (\\HasNoChildren \\TEST) \"/\" Sent\n* LIST (\\A) \"a\" DENNIS KATSONIS\nSpaminex3 OK\n");
-  writeln(f);
-  writeln(parenthesisContents("This is a(test).",'(',')',pos));
-  writeln(parse_capability_list("* CAPABILITY STARTTLS IMAP4rev1 LITERAL+ SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS SPECIAL-USE BINARY MOVE SEARCH=FUZZY QUOTA"));
-  writeln("SDFSDFSDFSDF");
-  //  writeln(parenthesisContents("\"no@test.com\" NO TEST",'\"','\"',pos));
+  assert(parseUID("TEST (UID 444) STUFF") == "444");
+  auto flags = parse_flag_list("\\Answered \\Flagged \\Deleted \\Seen \\Draft NonJunk");
+
+  assert(parseUID("NULL") == "");
+
+  assert(canFind(flags,"Answered") == true);
+  assert(canFind(flags,"Flagged") == true);
+  assert(canFind(flags,"Deleted") == true);
+  assert(canFind(flags,"Seen") == true);
+  assert(canFind(flags,"Draft NonJunk") == true);
+  
 }

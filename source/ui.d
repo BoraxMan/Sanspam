@@ -99,13 +99,14 @@ void createStatusWindow()
 void clearStatusMessage()
 {
   wmove(statusWindow,0,0);
-  wclrtoeol(statusWindow);
+  wclrtobot(statusWindow);
   wrefresh(statusWindow);
   return;
 }
 
 void writeStatusMessage(in string message)
 {
+  clearStatusMessage;
   wattron(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
   mvwprintw(statusWindow,0,0,message.toStringz);
   wrefresh(statusWindow);
@@ -276,7 +277,10 @@ void editAccount(in string account, in string folder = "")
     if(item_value(messageItems[count]) == true) { // Has been tagged in the menu.
       if((mailbox.remove(count+1, (cast(Message*)item_userptr(messageItems[count])).uidl)) == false) {
 	writeStatusMessage("FAILED to delete message for "~(cast(Message*)item_userptr(messageItems[count])).uidl);
+      } else {
+	writeStatusMessage("Deleted message "~(cast(Message*)item_userptr(messageItems[count])).uidl);
       }
+      
       if(((cast(Message*)item_userptr(messageItems[count])).bounce) == true) {
 	writeStatusMessage("Bouncing to "~(cast(Message*)item_userptr(messageItems[count])).from);
 	mailbox.bounceMessage(count+1);

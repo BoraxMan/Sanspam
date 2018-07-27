@@ -237,18 +237,5 @@ public:
 unittest
 {
 
-  Config a = getConfig("test1");
-  Config b = getConfig("test2");
-  Config c = getConfig("netspace");
-  assert(configExists("netspace") == true);
-  assert (b.hasSetting("username") == false);
-  writeln(a.getSetting("pop"));
-  writeln(a.getSetting("quoted"));
-  assert(configExists("test1") == true);
-  assert(configExists("zzzzzzz") == false);
-  writeln(b.getSetting("pop"));
-  a.modify("test","value");
 
-
-  writeConf();
 }
