@@ -51,6 +51,13 @@ WINDOW *accountSelectionWindow = null;
 WINDOW *accountEditWindow = null;
 WINDOW *statusWindow = null;
 WINDOW *headerWindow = null;
+WINDOW *licenseWindow = null;
+WINDOW *aboutWindow = null;
+
+void mainMenuHelp()
+{
+    writeStatusMessage("Up/Down to navigate. Enter to select account.  (L)icense, (A)bout, (Q)uit.");
+}
 
 void termResize()
 {
@@ -95,7 +102,6 @@ void createStatusWindow()
   wbkgd(statusWindow, A_NORMAL|ColourPairs.StatusBar);
 }
     
-
 void clearStatusMessage()
 {
   wmove(statusWindow,0,0);
@@ -111,13 +117,11 @@ void writeStatusMessage(in string message)
   mvwprintw(statusWindow,0,0,message.toStringz);
   wrefresh(statusWindow);
   wattroff(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
-
 }
 
 
 void editAccount(in string account, in string folder = "")
 {
-
   doResize(3);
   d = &doResize;
   signal(28, d);
@@ -300,6 +304,74 @@ void mainWindow()
   headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--");
 }
 
+void showAbout()
+{
+  string[] aboutText =  [
+    "SPAMINEX, by Dennis Katsonis, 2018",
+    "",
+    "Spaminex is an interactive tool to allow you to easily scan your",
+    "e-mail Inbox and delete any messages you don't want.  In addition",
+    "to this, you can bounce back an error message to the sender, which",
+    "may dissuade spammers from reusing your e-mail address.",
+    "Spaminex is inspired by Save My Modem by Enrico Tasso",
+    "and SpamX by Emmanual Vasilakis, which are two simple, easy",
+    "to set up tools that I used to use, but aren't maintained anymore.",
+    "Refer to the README file for help on how to configure Spaminex.",
+    "",
+    "This program is intended for simple, basic e-mail pruning."];
+  aboutWindow = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex");
+  wattron(aboutWindow, COLOR_PAIR(ColourPairs.StandardText));
+
+  int line = 1;
+  foreach(ref x; aboutText) {    
+    mvwprintw(aboutWindow, line++, 1, x.toStringz);
+  }
+
+  wrefresh(aboutWindow);
+  writeStatusMessage("Press any key to return.");
+  touchwin(aboutWindow);
+  wgetch(aboutWindow);
+  wclear(aboutWindow);
+  wrefresh(aboutWindow);
+  delwin(aboutWindow);
+
+
+}
+void showLicence()
+{
+  string[] licenseText =  [
+    "Copyright Dennis Katsonis, 2018",
+    "",
+    "This program is free software: you can redistribute it and/or modify",
+    "it under the terms of the GNU General Public License as published by",
+    "the Free Software Foundation, either version 3 of the License, or",
+    "(at your option) any later version.",
+    "",
+    "This program is distributed in the hope that it will be useful,",
+    "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+    "GNU General Public License for more details.",
+    "You should have received a copy of the GNU General Public License",
+    "along with this program.  If not, see <http://www.gnu.org/licenses/>."];
+  
+  licenseWindow = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE");
+  wattron(licenseWindow, COLOR_PAIR(ColourPairs.StandardText));
+
+  int line = 1;
+  foreach(ref x; licenseText) {    
+    mvwprintw(licenseWindow, line++, 1, x.toStringz);
+  }
+
+  wrefresh(licenseWindow);
+  writeStatusMessage("Press any key to return.");
+  touchwin(licenseWindow);
+  wgetch(licenseWindow);
+  wclear(licenseWindow);
+  wrefresh(licenseWindow);
+  delwin(licenseWindow);
+}
+
+
 void initCurses()
 {
   initscr;
@@ -331,7 +403,6 @@ WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs
     wattron(local_win, A_BOLD);
     mvwprintw(local_win, 0,cast(int)((width/2)-(title.length/2)), "%s", title.toStringz);
     wattroff(local_win, A_BOLD);
-
   }
   wrefresh(local_win);                    // Show that box
   return local_win;
@@ -368,7 +439,7 @@ string accountSelectMenu()
   }
 
   accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account");
-  writeStatusMessage("Up/Down to navigate. Enter to select account.  (L)icense, (A)bout, (Q)uit.");
+  mainMenuHelp;
   auto xx = configurations.byKey();
   foreach(conf; xx) {
     //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
@@ -400,6 +471,22 @@ string accountSelectMenu()
     {
       switch (c)
         {
+	case 'a':
+	  goto case;
+	case 'A':
+	  showAbout;
+	  touchwin(accountSelectionWindow);
+	  redrawwin(accountSelectionWindow);
+	  mainMenuHelp;
+	  break;
+	case 'l':
+	  goto case;
+	case 'L':
+	  showLicence;
+	  touchwin(accountSelectionWindow);
+	  redrawwin(accountSelectionWindow);
+	  mainMenuHelp;
+	  break;
         case KEY_DOWN:
 	  menu_driver(mailboxMenu, REQ_DOWN_ITEM);
 	  break;
