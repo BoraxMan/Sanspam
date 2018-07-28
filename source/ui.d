@@ -368,7 +368,7 @@ string accountSelectMenu()
   }
 
   accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account");
-  writeStatusMessage("Up/Down to navigate. Enter to select account.  Q to Quit.");
+  writeStatusMessage("Up/Down to navigate. Enter to select account.  (L)icense, (A)bout, (Q)uit.");
   auto xx = configurations.byKey();
   foreach(conf; xx) {
     //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
