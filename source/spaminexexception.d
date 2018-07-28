@@ -26,9 +26,10 @@ private:
   
 public:
   
-  this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null) @safe pure nothrow
+  this(string msg, string errorType, string file = __FILE__, size_t line = __LINE__, Throwable next = null) @safe pure nothrow
   {
     super(msg, file, line, next);
+    m_errortype = errorType;
   }
 
   string getErrorType() const @safe pure

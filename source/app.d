@@ -30,7 +30,7 @@ import exceptionhandler;
 import spaminexexception;
 import mailbox;
 import ui;
-
+import uidefs;
 
 int main()
 {

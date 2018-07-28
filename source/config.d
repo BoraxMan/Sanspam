@@ -228,7 +228,7 @@ public:
     if(hasSetting(key)) {
       return m_configOption[key];
     } else {
-      throw new SpaminexException("Setting doesn't exist", key);
+      throw new SpaminexException("Setting doesn't exist", "Missing setting is \""~key~"\"");
     }
   }
  

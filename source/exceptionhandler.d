@@ -18,7 +18,11 @@
  */
 
 import std.exception;
-import std.stdio;
+import std.string;
+import deimos.ncurses;
+import deimos.ncurses.menu;
+import uidefs;
+
 import spaminexexception;
 
 class ExceptionHandler
@@ -32,10 +36,20 @@ public:
     m_exception = e;
   }
 
-  void display() @safe const
+  void display()
   {
-    writeln(m_exception.getErrorType());
-    writeln(m_exception.msg);
+    WINDOW *exceptionDisplay;
+
+    exceptionDisplay = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"Spaminex has encountered a problem.");
+    wattron(exceptionDisplay, COLOR_PAIR(ColourPairs.StandardText));
+    mvwprintw(exceptionDisplay, 1, 1, ("ERROR :"~m_exception.msg).toStringz);
+    mvwprintw(exceptionDisplay, 2, 1, ("Details :"~m_exception.getErrorType).toStringz);
+    touchwin(exceptionDisplay);
+    writeStatusMessage("Press any key to return.");
+    wgetch(exceptionDisplay);
+    wclear(exceptionDisplay);
+    wrefresh(exceptionDisplay);
+    delwin(exceptionDisplay);
   }
   
 }

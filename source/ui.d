@@ -17,6 +17,9 @@
  *
  */
 
+
+// This has code specific to the Spaminex UI.
+
 import core.stdc.errno;
 import core.sys.posix.sys.ioctl;
 import core.stdc.signal;
@@ -32,27 +35,8 @@ import exceptionhandler;
 import spaminexexception;
 import mailbox;
 import mailprotocol;
+import uidefs;
 
-const int SIGWINCH = 28;
-bool termResized = false;
-
-enum ColourPairs : int {
-  MainBorder = 1,
-    MainTitleText,
-    StatusBar,
-    MenuFore,
-    MenuBack,
-    AccountMenuFore,
-    AccountMenuBack,
-    StandardText
-    }
-
-WINDOW *accountSelectionWindow = null;
-WINDOW *accountEditWindow = null;
-WINDOW *statusWindow = null;
-WINDOW *headerWindow = null;
-WINDOW *licenseWindow = null;
-WINDOW *aboutWindow = null;
 
 void mainMenuHelp()
 {
@@ -96,28 +80,7 @@ Only set the bool to true.  Handle resize in the event loop to manage input.
 }
 
 
-void createStatusWindow()
-{
-  statusWindow = newwin(1,COLS,LINES-1,0);
-  wbkgd(statusWindow, A_NORMAL|ColourPairs.StatusBar);
-}
-    
-void clearStatusMessage()
-{
-  wmove(statusWindow,0,0);
-  wclrtobot(statusWindow);
-  wrefresh(statusWindow);
-  return;
-}
 
-void writeStatusMessage(in string message)
-{
-  clearStatusMessage;
-  wattron(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
-  mvwprintw(statusWindow,0,0,message.toStringz);
-  wrefresh(statusWindow);
-  wattroff(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
-}
 
 
 void editAccount(in string account, in string folder = "")
@@ -162,6 +125,7 @@ void editAccount(in string account, in string folder = "")
   } catch (SpaminexException e) {
     auto except = new ExceptionHandler(e);
     except.display;
+    return;
   }
 
   if (mailbox.protocol == Protocol.IMAP)
@@ -306,6 +270,7 @@ void mainWindow()
 
 void showAbout()
 {
+  WINDOW *aboutWindow = null;
   string[] aboutText =  [
     "SPAMINEX, by Dennis Katsonis, 2018",
     "",
@@ -339,6 +304,7 @@ void showAbout()
 }
 void showLicence()
 {
+  WINDOW *licenseWindow = null;
   string[] licenseText =  [
     "Copyright Dennis Katsonis, 2018",
     "",
@@ -391,22 +357,6 @@ void initCurses()
   refresh;
 }
 
-WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs border, ColourPairs text, string title = "")
-{
-  WINDOW* local_win;
-  local_win = newwin(height, width, starty, startx);
-  wattron(local_win, COLOR_PAIR(border));
-  box(local_win, A_NORMAL , A_NORMAL);
-  wattroff(local_win, COLOR_PAIR(border));
-  wbkgd(local_win, COLOR_PAIR(text));
-  if (title != "") {
-    wattron(local_win, A_BOLD);
-    mvwprintw(local_win, 0,cast(int)((width/2)-(title.length/2)), "%s", title.toStringz);
-    wattroff(local_win, A_BOLD);
-  }
-  wrefresh(local_win);                    // Show that box
-  return local_win;
-}
 
 string accountSelectMenu()
 {
