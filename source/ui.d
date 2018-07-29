@@ -80,9 +80,6 @@ Only set the bool to true.  Handle resize in the event loop to manage input.
 }
 
 
-
-
-
 void editAccount(in string account, in string folder = "")
 {
   doResize(3);
@@ -271,6 +268,7 @@ void mainWindow()
 void showAbout()
 {
   WINDOW *aboutWindow = null;
+  immutable int aboutWindowWidth = 70;
   string[] aboutText =  [
     "SPAMINEX, by Dennis Katsonis, 2018",
     "",
@@ -284,7 +282,7 @@ void showAbout()
     "Refer to the README file for help on how to configure Spaminex.",
     "",
     "This program is intended for simple, basic e-mail pruning."];
-  aboutWindow = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex");
+  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex");
   wattron(aboutWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -299,12 +297,12 @@ void showAbout()
   wclear(aboutWindow);
   wrefresh(aboutWindow);
   delwin(aboutWindow);
-
-
 }
+
 void showLicence()
 {
   WINDOW *licenseWindow = null;
+  immutable int licenseWindowWidth = 72;
   string[] licenseText =  [
     "Copyright Dennis Katsonis, 2018",
     "",
@@ -320,7 +318,7 @@ void showLicence()
     "You should have received a copy of the GNU General Public License",
     "along with this program.  If not, see <http://www.gnu.org/licenses/>."];
   
-  licenseWindow = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE");
+  licenseWindow = create_newwin(licenseText.length.to!int+2,licenseWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE");
   wattron(licenseWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;

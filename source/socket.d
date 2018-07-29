@@ -107,16 +107,13 @@ public:
     }
   }
 
-  ~this()
-  {
-    if(m_socket.isAlive == true)
-      close;
-  }
-  
   void close() @trusted
   {
-    endSSL;
-    m_socket.close;
+    if(m_socket.isAlive == true)
+      {
+	endSSL;
+	m_socket.close;
+      }
   }
 
   bool send(in string message) @trusted

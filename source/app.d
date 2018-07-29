@@ -44,9 +44,22 @@ int main()
   }
 
   scope(exit) {
+    curs_set(1);
     endwin;
   }
+
   initCurses;
+  curs_set(0);
+
+  /* Spaminex is not going to be very useful with a mini terminal.
+     Better to quit, than let the user deal with stuck windows.
+     Who is going to use a terminal that small, at least for this app?
+  */
+  if (LINES < 24 || COLS < 80) {
+    writeln("Spaminex requires a terminal of at least 80x24 characters");
+    return 1;
+  }
+
   mainWindow;
   createStatusWindow;
   string account;

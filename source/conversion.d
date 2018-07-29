@@ -27,7 +27,7 @@ import spaminexexception;
 
 immutable string utfSeqStart = "=?";
 immutable string utfSeqEnd = "?=";
-immutable string space = x"20";
+immutable string space = hexString!"20";
 
 immutable string encodingLabelUTF8 = "utf-8";
 immutable string encodingLabelISO_8859_1 = "iso-8859-1";

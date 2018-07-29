@@ -57,7 +57,6 @@ struct commandPrefix
   }
 }
 
-
 class IMAP : MailProtocol
 {
 private:
