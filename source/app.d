@@ -56,6 +56,7 @@ int main()
      Who is going to use a terminal that small, at least for this app?
   */
   if (LINES < 24 || COLS < 80) {
+    endwin;
     writeln("Spaminex requires a terminal of at least 80x24 characters");
     return 1;
   }
