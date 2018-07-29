@@ -32,8 +32,17 @@ import mailbox;
 import ui;
 import uidefs;
 
+version(DMD) {
+  import etc.linux.memoryerror;
+}
+
 int main()
 {
+  version(DMD) {
+    static if (is(typeof(registerMemoryErrorHandler)))
+      registerMemoryErrorHandler();
+  }
+
   scope(exit) {
     endwin;
   }
