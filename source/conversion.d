@@ -52,6 +52,9 @@ enum encodingType {
 
 textEncodingType getCharsetTypeEncodingType(in string text) @safe pure
 {
+  /* Function to determine the encoding type from supplied text.
+     This return the text Encoding Type, which is a tuple containing both the character
+     set used, and whether ASCII or BASE64 encoded. */
   textEncodingType te;
   immutable auto first = indexOf(text,"?");
 
@@ -76,6 +79,7 @@ textEncodingType getCharsetTypeEncodingType(in string text) @safe pure
 }
 
 T hextoChar(T)(string input) @safe pure
+  if (is(T == char) || is(T == Latin1Char) || is(T == Latin2Char))
   in
     {
       assert(input.length == 2);
@@ -89,17 +93,18 @@ body
     return cast(T)(parse!int(input,16));
   }
 
-void base64Decode(ref string text)
+string base64Decode(ref string text) pure
 {
+
   string output;
   ubyte[] array = cast(ubyte[])text;
   auto decoded = Base64.decode(array);
-  text = "";
+  //text = "";
   foreach(ref x; decoded) {
     // Rebuild text as decoded characters;
-    text~=x;
+    output~=x;
   }
-
+  return output;
 }
 
 string decode2(string text)
@@ -110,7 +115,7 @@ string decode2(string text)
   index += te.encodeHeaderLength;
   text = text[index..$];
   if (te.encoding == encodingType.BASE64) {
-    text.base64Decode;
+    text = text.base64Decode;
   }
   
   if (te.charset == charsetType.UTF8) {
@@ -133,7 +138,9 @@ string decode2(string text)
 }
 
 string decodeUTF8(T)(string text)
-{
+  if (is(T == string) || is(T == Latin1String) || is(T == Latin2String))
+    
+ {
   T decodedText;
   string output;
   int index;
@@ -223,10 +230,17 @@ string decodeUTF8(T)(string text)
 string decodeText(string text)
 {
   string output;
-
+  /* This function will convert the ASCII subject string
+     into an actual UTF8 or ISO-8859 string.  It does this by looking
+     for character sequences which indicate the start and end of a UTF8
+     sequence, and then decoding the sequence and if necessary, doing base64 decode
+     and storing the result as a UTF8 string.  If the start/end markers are not found
+     the string is used as is.  If the string is less than two characters, it is skipped.
+  */
+  
   int x;
   while(x < text.length) {
-    if (x < (text.length - 2)) {
+    if (x < (text.length - 2) && text.length >= 2) {
       if (text[x..x+2] == utfSeqStart) {
 	// Found an atom.
 	x+=2;
@@ -273,17 +287,11 @@ unittest
     assert(hextoChar!Latin2Char("00") == 0);
   }
   assert(hextoChar!Latin1Char("00") == 0);
-  //writeln(decodeText("=?ISO-8859-2?Q?SDF?="));
-
   assert(getCharsetTypeEncodingType("utf-8?Q?stuff").charset == charsetType.UTF8);
   assert(getCharsetTypeEncodingType("utf-8?Q?stuff").encoding == encodingType.ASCII);
 
   assert(getCharsetTypeEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
   assert(getCharsetTypeEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
-  //writeln(decodeText("Subject: =?utf-8?Q?Re:_New_loan_listing_=E2=80=93_$75k_for_36_months_?==?utf-8?Q?@15.5%_p.a._Secured_=E2=80=93_1_week_listing_only!?="));
-  //writeln(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?="));
-  //writeln(decodeText("=?UTF-8?B?2KfZhNiu2LfZiNin2Kog2KfZhNiq2Yog2KrYrNmF2Lkg2KjZitmG?= =?UTF-8?B?INit2YHYuCDYp9mE2YLYsdin2ZPZhiDYp9mE2YPYsdmK2YUg2YjZgQ==?= =?UTF-8?B?2YfZhdmHINmF2YXYpyDYp9mU2YXZhNin2Ycg2KfZhNi52YTYp9mF?= =?UTF-8?B?2Kkg2LnYqNivINin2YTZhNmHINin2YTYutiv2YrYp9mGLnBkZg==?="));
-  //  writeln(decodeUTF8!Latin1String("Keld_J=F8rn_Simonsen"));
-  // writeln(decodeText("Subject: =?UTF-8?Q?Dise=C3=B1o=20de=20P=C3=81GINAS=20W?= =?UTF-8?Q?EB?=,=?UTF-8?Q?=20Posicionate=20en=20Googl?==?UTF-8?Q?e=20y=20Vende=20M=C3=A1s=2E=2E=2E?="));
+  assert(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=") == "Subject: If you can read this yo");
 
 }

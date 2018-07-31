@@ -29,7 +29,7 @@ private:
 
 public:
 
-  @property size_t length() const @safe
+  @property size_t length() const @safe pure
   {
     return m_textArray.length;
   }

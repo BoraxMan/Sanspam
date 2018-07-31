@@ -53,9 +53,9 @@ public:
        in string _returnPath,
        in string _received,
        in string _message_id,
-       in string _m_uidl = "") @safe
+       in string _uidl = "") @safe
   {
-    m_uidl = _m_uidl;
+    m_uidl = _uidl;
     m_subject = _subject;
     m_date = _date;
     m_to = _to;
@@ -63,8 +63,6 @@ public:
     m_returnPath = _returnPath;
     m_received = _received;
     m_message_ID = _message_id;
-    m_uidl = _m_uidl;
-
 
     foreach(member; __traits(allMembers, Message))
       {

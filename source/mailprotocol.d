@@ -37,6 +37,7 @@ alias string[] flaglist;
 alias string[] capabilities;
 alias Folder[] FolderList;
 
+enum defaultBufferSize = 65536;
 enum MessageStatus {
   OK,
   BAD,
@@ -60,25 +61,24 @@ struct Folder {
 
 alias queryResponse = Tuple!(MessageStatus, "status", string, "contents");
 
-string bufferToString(OutBuffer buffer) @trusted
+string bufferToString(OutBuffer buffer) @trusted pure
   {
     auto message = buffer.toString;
     return message;
   }
   
 
-
-string insertValue(in string format, in int value)
+string insertValue(in string format, in int value, in string text = "") pure
 {
+  /* Convienence function to insert a value in a specified place 
+     within a string, or if required, a value and text.
+  */
   auto message = appender!string();
-  message.formattedWrite(format,value);
-  return(message.data);
-}
-
-string insertValueAndString(in string format, in int value, in string text)
-{
-  auto message = appender!string();
-  message.formattedWrite(format,value,text);
+  if (text != "") {
+    message.formattedWrite(format,value,text);
+  } else {
+    message.formattedWrite(format,value);
+  }
   return(message.data);
 }
   
@@ -103,7 +103,7 @@ struct Messages
     m_messages.length = 0;
   }
   
-  final bool empty() @safe const
+  final bool empty() @safe const pure
   {
     return ((begin - 1) == m_messages.length);
   }
@@ -113,12 +113,12 @@ struct Messages
     ++begin;
   }
 
-  final size_t length() @safe const
+  final size_t length() @safe const pure
   {
     return m_messages.length;
   }
   
-  final Message front() @safe
+  final Message front() @safe pure
   {
     return(m_messages[begin-1]);
   }
@@ -155,7 +155,7 @@ class MailProtocol
 
   MailSocket m_socket;
   immutable string endline = "\r\n";
-  char[65536] m_buffer;
+  char[defaultBufferSize] m_buffer;
   string[] m_capabilities;
   FolderList m_folderList;
 
@@ -249,7 +249,7 @@ public:
 
       // But first, if we have specified a Trash folder, copy to trash.
       if (trashFolder != "") { // A folder has been specified.
-	string trashMessageQuery = insertValueAndString(getQueryFormat(Command.Copy),messageNumber, trashFolder);
+	string trashMessageQuery = insertValue(getQueryFormat(Command.Copy),messageNumber, trashFolder);
 	auto trashResponse = query(trashMessageQuery);
 	if (trashResponse.status == MessageStatus.BAD) {
 	  throw new SpaminexException("Could not move message to Trash", "Error moving message to "~trashFolder~".  Options are to check the correct Trash folder is specified, or delete the message without moving to Trash.");
@@ -280,7 +280,7 @@ unittest
 
   string test2 = "TEST %d %s TEST";
   string result2;
-  result2 = insertValueAndString(test2,414, "DENNIS");
+  result2 = insertValue(test2,414, "DENNIS");
 
   assert(result2 == "TEST 414 DENNIS TEST");
 }

@@ -300,15 +300,6 @@ public:
       response.contents ~= buffer.text;
       isOK = evaluateMessage(response.contents, prefix.currentPrefix);
     }
-    /*
-    if (isOK == MessageStatus.OK) {
-      response.contents = chompQueryPrefix(message, prefix.currentPrefix);
-    } else if (!isOK) {
-      response.isValid = false;
-      response.contents = chompQueryPrefix(message, prefix.currentPrefix);
-    } else if
-    }
-    */
     return response;
   }
     
@@ -354,7 +345,7 @@ unittest
   commandPrefix p;
   assert(p() == "Spaminex1 ");
   assert(p() == "Spaminex2 ");
-  assert(insertValueAndString(d.getQueryFormat(Command.Copy),4,"TEST") == "COPY 4 TEST");
+  assert(insertValue(d.getQueryFormat(Command.Copy),4,"TEST") == "COPY 4 TEST");
   assert(insertValue(d.getQueryFormat(Command.Delete),4) == "STORE 4 +FLAGS (\\Deleted)");
   assert(d.getQueryFormat(Command.Logout) == "LOGOUT");
 

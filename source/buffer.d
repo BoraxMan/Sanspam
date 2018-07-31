@@ -21,7 +21,7 @@
 
 import std.outbuffer;
 
-const standardBufferSize = 32768;
+enum standardBufferSize = 32768;
 
 class Buffer : OutBuffer
 {
@@ -36,13 +36,26 @@ class Buffer : OutBuffer
     offset = 0;
   }
 
-  string text() @safe
+  string text() @safe pure
   {
     return toString();
   }
 
-  size_t length() @safe
+  size_t length() @safe pure
   {
     return data.length;
   }
+}
+
+unittest {
+  auto buffer = new Buffer;
+  string text = "1234567890";
+  assert(buffer.text == "");
+  buffer.reset;
+  assert(buffer.length == 0);
+  buffer.write(text[0..$]);
+  assert(buffer.text == text);
+  buffer.reset;
+  assert(buffer.length == 0);
+  assert(buffer.text == "");
 }
