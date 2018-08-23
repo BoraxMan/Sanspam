@@ -50,7 +50,7 @@ private:
   //  messagePart *target;
   messagePart[messageComponents] messageParts;
   messageComponents part = messageComponents.Unknown;
-
+  
   messageComponents getComponentType(in string text) pure @trusted
   {
     auto range = messageParts.byKey();

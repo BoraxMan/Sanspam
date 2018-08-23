@@ -18,7 +18,7 @@
  */
 
 // Super class for Mail protocol handling.
-import std.outbuffer;
+
 import std.typecons;
 import std.string;
 import std.array;
@@ -61,12 +61,6 @@ struct Folder {
 
 alias queryResponse = Tuple!(MessageStatus, "status", string, "contents");
 
-string bufferToString(OutBuffer buffer) @trusted pure
-  {
-    auto message = buffer.toString;
-    return message;
-  }
-  
 
 string insertValue(in string format, in int value, in string text = "") pure
 {
@@ -81,7 +75,6 @@ string insertValue(in string format, in int value, in string text = "") pure
   }
   return(message.data);
 }
-  
 
 struct Messages
 { /* The only real purpose of this struct is to use a numbering system which coincides with

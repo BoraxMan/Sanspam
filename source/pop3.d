@@ -19,15 +19,15 @@
 
 import std.typecons;
 import std.string;
+import std.exception;
+import std.conv;
+import std.algorithm;
 import buffer;
 import socket;
 import config;
 import message;
 import mailprotocol;
 import spaminexexception;
-import std.exception;
-import std.conv;
-import std.algorithm;
 import processline;
 import exceptionhandler;
 

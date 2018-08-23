@@ -42,13 +42,16 @@ int main()
     static if (is(typeof(registerMemoryErrorHandler)))
       registerMemoryErrorHandler();
   }
-
+  bool cursesInitialised = false;
   scope(exit) {
-    curs_set(1);
-    endwin;
+    if (cursesInitialised) {
+      curs_set(1);
+      endwin;
+    }
   }
 
   initCurses;
+  cursesInitialised = true;
   curs_set(0);
 
   /* Spaminex is not going to be very useful with a mini terminal.

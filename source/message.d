@@ -38,11 +38,13 @@ private:
   @Mandatory string m_from;
   string m_returnPath;
   string m_received;
-  string m_message_ID;
+  @Mandatory string m_message_ID;
   bool m_deleted = false;
   bool m_bounce = false;
   bool m_isSpam = false; // Innocent until proven guilty.
   bool m_loaded = false;
+  uint m_messagenumber; // The message number as per the server.  For POP
+                        // servers this starts at 1 and is incremented.
   
 public:
 
@@ -76,6 +78,16 @@ public:
   }
   // Properties
 
+  @property uint number() @safe const pure nothrow
+  {
+    return m_messagenumber;
+  }
+
+  @property void number(uint num) @safe pure nothrow
+  {
+    m_messagenumber = num;
+  }
+  
   @property bool loaded() @safe const pure nothrow
   {
     return m_loaded;
@@ -131,9 +143,11 @@ public:
     return m_returnPath;
   }
 
-  @property string received() @safe const pure nothrow
+  @property string received() @safe const pure
   {
-    return m_received;
+    string returnString;
+    returnString = tr(m_received, ";", "\n");
+    return returnString;
   }
 
   @property string message_id() @safe const pure nothrow
@@ -163,9 +177,3 @@ public:
   }
   
 }
-
-
-unittest {
-
-}
-

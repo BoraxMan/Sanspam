@@ -23,6 +23,12 @@ import std.outbuffer;
 
 enum standardBufferSize = 32768;
 
+string bufferToString(OutBuffer buffer) @trusted pure
+  {
+    auto message = buffer.toString;
+    return message;
+  }
+
 class Buffer : OutBuffer
 {
   this() @safe

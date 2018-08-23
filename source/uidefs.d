@@ -34,13 +34,16 @@ enum ColourPairs : int {
     MenuBack,
     AccountMenuFore,
     AccountMenuBack,
-    StandardText
+    StandardText,
+    GreenText,
+    RedText,
     }
 
 WINDOW *accountSelectionWindow = null;
 WINDOW *accountEditWindow = null;
 WINDOW *statusWindow = null;
 WINDOW *headerWindow = null;
+WINDOW *inspectorWindow = null;
 
 void writeStatusMessage(in string message)
 {
@@ -66,13 +69,15 @@ void clearStatusMessage()
 }
 
 
-WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs border, ColourPairs text, string title = "")
+WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs border, ColourPairs text, string title = "", bool hasBox = false)
 {
   WINDOW* local_win;
   local_win = newwin(height, width, starty, startx);
-  wattron(local_win, COLOR_PAIR(border));
-  box(local_win, A_NORMAL , A_NORMAL);
-  wattroff(local_win, COLOR_PAIR(border));
+  if (hasBox) {
+    wattron(local_win, COLOR_PAIR(border));
+    box(local_win, A_NORMAL , A_NORMAL);
+    wattroff(local_win, COLOR_PAIR(border));
+  }
   wbkgd(local_win, COLOR_PAIR(text));
   if (title != "") {
     wattron(local_win, A_BOLD);

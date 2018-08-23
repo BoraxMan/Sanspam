@@ -1,5 +1,5 @@
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * : Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import deimos.ncurses.menu;
 import std.string;
 import std.conv;
 import std.string;
+import std.algorithm;
 import message;
 import config;
 import exceptionhandler;
@@ -38,9 +39,14 @@ import mailprotocol;
 import uidefs;
 
 
+void mailboxViewHelp()
+{
+  writeStatusMessage("(D)elete, (B)ounce and delete, (I)nspect, (Q)uit, (C)ancel and quit");
+}
+
 void mainMenuHelp()
 {
-    writeStatusMessage("Up/Down to navigate. Enter to select account.  (L)icense, (A)bout, (Q)uit.");
+  writeStatusMessage("Up/Down to navigate. Enter to select account.  (L)icense, (A)bout, (Q)uit.");
 }
 
 void termResize()
@@ -70,7 +76,7 @@ extern (C) void function(int) nothrow @nogc @system d;
 
 extern (C) {
   /* We have very limited ability to respond to a signal that the terminal has been resized.
-Only set the bool to true.  Handle resize in the event loop to manage input.
+     Only set the bool to true.  Handle resize in the event loop to manage input.
   */
   
   void doResize(int x = 0) nothrow @nogc @system
@@ -78,7 +84,6 @@ Only set the bool to true.  Handle resize in the event loop to manage input.
     termResized = true;
   }
 }
-
 
 void editAccount(in string account, in string folder = "")
 {
@@ -112,7 +117,7 @@ void editAccount(in string account, in string folder = "")
       clearStatusMessage;      
     }
   
-  accountEditWindow = newwin(LINES-3,COLS-2,1,1);
+  accountEditWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"", false);
   menu_opts_off(messageMenu, O_ONEVALUE);
   int x;
   
@@ -194,13 +199,21 @@ void editAccount(in string account, in string folder = "")
   footer~="  Editing account : "~account~".";
   wprintw(accountEditWindow,footer.toStringz);
   wrefresh(accountEditWindow);
-  writeStatusMessage("(D)elete, (B)ounce and delete, (Q)uit, (C)ancel and quit");
-  
+  mailboxViewHelp;
+
   int c;
   while ((c = wgetch(accountEditWindow)) != 'q')
     {
       switch (c)
 	{
+	case 'i':
+	  goto case;
+	case 'I':
+	  messageInspector((cast(Message*)item_userptr(current_item(messageMenu))));
+	  touchwin(accountEditWindow);
+	  redrawwin(accountEditWindow);
+	  mailboxViewHelp;
+	  break;
 	case 'c':
 	  goto case;
 	case 'C':
@@ -234,7 +247,7 @@ void editAccount(in string account, in string folder = "")
 	default:
 	  break;
 	}
-            termResize;
+      termResize;
       wrefresh(accountSelectionWindow);
     }
 
@@ -256,13 +269,12 @@ void editAccount(in string account, in string folder = "")
   }
 
   mailbox.close;
-  
   wrefresh(accountEditWindow);
 }
 
 void mainWindow()
 {
-  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--");
+  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--", true);
 }
 
 void showAbout()
@@ -270,19 +282,19 @@ void showAbout()
   WINDOW *aboutWindow = null;
   immutable int aboutWindowWidth = 70;
   string[] aboutText =  [
-    "SPAMINEX, by Dennis Katsonis, 2018",
-    "",
-    "Spaminex is an interactive tool to allow you to easily scan your",
-    "e-mail Inbox and delete any messages you don't want.  In addition",
-    "to this, you can bounce back an error message to the sender, which",
-    "may dissuade spammers from reusing your e-mail address.",
-    "Spaminex is inspired by Save My Modem by Enrico Tasso",
-    "and SpamX by Emmanual Vasilakis, which are two simple, easy",
-    "to set up tools that I used to use, but aren't maintained anymore.",
-    "Refer to the README file for help on how to configure Spaminex.",
-    "",
-    "This program is intended for simple, basic e-mail pruning."];
-  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex");
+			 "SPAMINEX, by Dennis Katsonis, 2018",
+			 "",
+			 "Spaminex is an interactive tool to allow you to easily scan your",
+			 "e-mail Inbox and delete any messages you don't want.  In addition",
+			 "to this, you can bounce back an error message to the sender, which",
+			 "may dissuade spammers from reusing your e-mail address.",
+			 "Spaminex is inspired by Save My Modem by Enrico Tasso",
+			 "and SpamX by Emmanual Vasilakis, which are two simple, easy",
+			 "to set up tools that I used to use, but aren't maintained anymore.",
+			 "Refer to the README file for help on how to configure Spaminex.",
+			 "",
+			 "This program is intended for simple, basic e-mail pruning."];
+  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex", true);
   wattron(aboutWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -304,21 +316,21 @@ void showLicence()
   WINDOW *licenseWindow = null;
   immutable int licenseWindowWidth = 72;
   string[] licenseText =  [
-    "Copyright Dennis Katsonis, 2018",
-    "",
-    "This program is free software: you can redistribute it and/or modify",
-    "it under the terms of the GNU General Public License as published by",
-    "the Free Software Foundation, either version 3 of the License, or",
-    "(at your option) any later version.",
-    "",
-    "This program is distributed in the hope that it will be useful,",
-    "but WITHOUT ANY WARRANTY; without even the implied warranty of",
-    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
-    "GNU General Public License for more details.",
-    "You should have received a copy of the GNU General Public License",
-    "along with this program.  If not, see <http://www.gnu.org/licenses/>."];
+			   "Copyright Dennis Katsonis, 2018",
+			   "",
+			   "This program is free software: you can redistribute it and/or modify",
+			   "it under the terms of the GNU General Public License as published by",
+			   "the Free Software Foundation, either version 3 of the License, or",
+			   "(at your option) any later version.",
+			   "",
+			   "This program is distributed in the hope that it will be useful,",
+			   "but WITHOUT ANY WARRANTY; without even the implied warranty of",
+			   "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+			   "GNU General Public License for more details.",
+			   "You should have received a copy of the GNU General Public License",
+			   "along with this program.  If not, see <http://www.gnu.org/licenses/>."];
   
-  licenseWindow = create_newwin(licenseText.length.to!int+2,licenseWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE");
+  licenseWindow = create_newwin(licenseText.length.to!int+2,licenseWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE", true);
   wattron(licenseWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -348,6 +360,8 @@ void initCurses()
   init_pair(ColourPairs.AccountMenuFore, COLOR_WHITE, COLOR_RED);
   init_pair(ColourPairs.AccountMenuBack, COLOR_WHITE, COLOR_BLACK);
   init_pair(ColourPairs.StandardText, COLOR_WHITE, COLOR_BLACK);
+  init_pair(ColourPairs.GreenText, COLOR_GREEN, COLOR_BLACK);
+  init_pair(ColourPairs.RedText, COLOR_RED, COLOR_BLACK);
   
   cbreak;
   noecho;
@@ -386,7 +400,7 @@ string accountSelectMenu()
       
   }
 
-  accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account");
+  accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account", true);
   mainMenuHelp;
   auto xx = configurations.byKey();
   foreach(conf; xx) {

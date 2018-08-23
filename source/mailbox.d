@@ -21,6 +21,7 @@ import std.array;
 import std.conv;
 import std.string;
 import std.format;
+import std.net.isemail;
 import spaminexexception;
 import processline;
 import message;
@@ -29,7 +30,6 @@ public import imap;
 import config;
 import mailprotocol;
 import SMTP_mod;
-
 
 enum Protocol {
   POP3,
@@ -40,14 +40,12 @@ enum Protocol {
 
 const string bounceFormat = "From: <MAILER-DAEMON@%s>\r\nSubject: Returned mail: see Transcript for details.\r\n\r\n   ----- The following addresses had permanent fatal errors -----\r\n<%s>\r\n(reason: 550 5.1.1 <%s>... User unknown)\r\n\r\n   ----- Transcript of session follows -----\r\n... while talking to mlsrv.%s.:\r\n>>> DATA\n<<< 550 5.1.1 <%s>... User unknown\r\n550 5.1.1 <%s>... User unknown\r\n<<< 503 5.0.0 Need RCPT (recipient)\r\n\r\n.";
 
-string getDomainFromEmailAddress(in string address)
+string getDomainFromEmailAddress(in string email)
 {
-  auto index = indexOf(address,'@');
-  if (index == -1) {
-    return "";
-  }
-  return address[index+1..$];
+  auto status = isEmail(email);
+  return status.domainPart();			       
 }
+
 
 class Mailbox
 {
