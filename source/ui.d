@@ -30,6 +30,7 @@ import std.string;
 import std.conv;
 import std.string;
 import std.algorithm;
+import messageinspector;
 import message;
 import config;
 import exceptionhandler;

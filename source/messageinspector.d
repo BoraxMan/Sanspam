@@ -16,6 +16,8 @@ struct messageInspector
   
   void printMessageInspectorItem(in string label, in string data)
   {
+    int x;
+    getyx(inspectorWindow, row, x);
     wmove(inspectorWindow, ++row, titleColumn);
     wattron(inspectorWindow, A_BOLD);
     wprintw(inspectorWindow, label.toStringz);
@@ -52,14 +54,11 @@ struct messageInspector
     printMessageInspectorItem("Date : ", m_message.date);
     printMessageInspectorItem("To : ", m_message.to);
     printMessageInspectorItem("From : ", m_message.from);
-    printMessageInspectorItem("Return Path : ", m_message.returnPath);
-    printMessageInspectorItem("Received : ", m_message.received);
 
-    getyx(inspectorWindow, row, x);
-    row += 2;
+    wmove(inspectorWindow, ++row, dataColumn);
     if (emailStatus.valid == true) {
       wattron(inspectorWindow, COLOR_PAIR(ColourPairs.GreenText) | A_BOLD);
-      wmove(inspectorWindow, row, titleColumn);
+      wmove(inspectorWindow, row, dataColumn);
       wprintw(inspectorWindow, "Email address is valid.");
       wattroff(inspectorWindow, A_BOLD);
     } else {
@@ -70,6 +69,12 @@ struct messageInspector
       wprintw(inspectorWindow, emailStatus.toString.toStringz);
       wattroff(inspectorWindow, A_BOLD);
     }
+    wattron(inspectorWindow, COLOR_PAIR(ColourPairs.StandardText));
+
+    printMessageInspectorItem("Return Path : ", m_message.returnPath);
+    printMessageInspectorItem("Received : ", m_message.received);
+
+ 
     wrefresh(inspectorWindow);
     writeStatusMessage("Press any key to return.");
   }
