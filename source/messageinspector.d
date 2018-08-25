@@ -3,6 +3,7 @@ import std.regex;
 import deimos.ncurses;
 import deimos.ncurses.menu;
 import std.string;
+import std.typecons;
 import uidefs;
 import message;
 
@@ -47,7 +48,7 @@ struct messageInspector
       }
     
     emailStatus = isEmail(email);
-    inspectorWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"Message Details", false);
+    inspectorWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"Message Details", No.hasBox);
 
     wattron(inspectorWindow, COLOR_PAIR(ColourPairs.StandardText));
     printMessageInspectorItem("Subject : ", m_message.subject);

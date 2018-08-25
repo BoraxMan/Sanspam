@@ -121,8 +121,10 @@ public:
   override final bool login(in string username, in string password) @safe
   {
     auto x = query("LOGIN "~username~" "~password,No.multiline);
-    if (x.status == MessageStatus.BAD)
-      return false;
+    if (x.status == MessageStatus.BAD || x.status == MessageStatus.INCOMPLETE) {
+      throw new SpaminexException("Failed to connect", x.contents~" : Incorrect username or password");
+    }
+
     getCapabilities();
     m_folderList = folderList;
 
@@ -204,6 +206,10 @@ public:
     
     ProcessMessageData pmd = new ProcessMessageData();
 
+    if (m_mailboxSize == 0) {
+      return true;  // Nothing more to do, if no messages.
+    }
+    
     messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" BODY[HEADER]";
     response = query(messageQuery, Yes.multiline);
     
@@ -300,6 +306,7 @@ public:
       response.contents ~= buffer.text;
       isOK = evaluateMessage(response.contents, prefix.currentPrefix);
     }
+    response.status = isOK;
     return response;
   }
     

@@ -22,6 +22,7 @@
 import deimos.ncurses;
 import deimos.ncurses.menu;
 import std.string;
+import std.typecons;
 
 const int SIGWINCH = 28;
 bool termResized = false;
@@ -37,6 +38,7 @@ enum ColourPairs : int {
     StandardText,
     GreenText,
     RedText,
+    PasswordBox
     }
 
 WINDOW *accountSelectionWindow = null;
@@ -44,6 +46,7 @@ WINDOW *accountEditWindow = null;
 WINDOW *statusWindow = null;
 WINDOW *headerWindow = null;
 WINDOW *inspectorWindow = null;
+WINDOW *passwordWindow = null;
 
 void writeStatusMessage(in string message)
 {
@@ -69,11 +72,11 @@ void clearStatusMessage()
 }
 
 
-WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs border, ColourPairs text, string title = "", bool hasBox = false)
+WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs border, ColourPairs text, string title = "", Flag!"hasBox" hasBox = No.hasBox)
 {
   WINDOW* local_win;
   local_win = newwin(height, width, starty, startx);
-  if (hasBox) {
+  if (hasBox == Yes.hasBox) {
     wattron(local_win, COLOR_PAIR(border));
     box(local_win, A_NORMAL , A_NORMAL);
     wattroff(local_win, COLOR_PAIR(border));

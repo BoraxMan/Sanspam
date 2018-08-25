@@ -30,6 +30,7 @@ public import imap;
 import config;
 import mailprotocol;
 import SMTP_mod;
+import getpassword;
 
 enum Protocol {
   POP3,
@@ -193,7 +194,13 @@ public:
   final bool login()
   {
     auto username = m_config.getSetting("username");
-    auto password = m_config.getSetting("password");
+    string password;
+    if (m_config.hasSetting("password")) {
+      password = m_config.getSetting("password");
+    } else {
+      password = getPassword;
+    }
+
     m_connection.login(username, password);
     password = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
     return true;

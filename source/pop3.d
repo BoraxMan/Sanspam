@@ -142,12 +142,11 @@ public:
     }
 
     if (isOK == MessageStatus.OK) {
-      response.status = MessageStatus.OK;
       response.contents = message.chompPrefix(OK);
     } else if(isOK == MessageStatus.BAD) {
-      response.status = MessageStatus.BAD;
       response.contents = message.chompPrefix(ERROR);
     }
+    response.status = isOK;
     return response;
   }
 

@@ -38,9 +38,10 @@ public:
 
   void display()
   {
+    getch();
     WINDOW *exceptionDisplay;
-
     exceptionDisplay = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"Spaminex has encountered a problem.");
+    
     wattron(exceptionDisplay, COLOR_PAIR(ColourPairs.StandardText));
     mvwprintw(exceptionDisplay, 1, 1, ("ERROR :"~m_exception.msg).toStringz);
     mvwprintw(exceptionDisplay, 2, 1, ("Details :"~m_exception.getErrorType).toStringz);

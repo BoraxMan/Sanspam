@@ -19,12 +19,13 @@
 
 
 // This has code specific to the Spaminex UI.
-
+import core.memory;
 import core.stdc.errno;
 import core.sys.posix.sys.ioctl;
 import core.stdc.signal;
 import std.stdio;
 import deimos.ncurses;
+import std.typecons;
 import deimos.ncurses.menu;
 import std.string;
 import std.conv;
@@ -118,7 +119,7 @@ void editAccount(in string account, in string folder = "")
       clearStatusMessage;      
     }
   
-  accountEditWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"", false);
+  accountEditWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"", No.hasBox);
   menu_opts_off(messageMenu, O_ONEVALUE);
   int x;
   
@@ -130,7 +131,8 @@ void editAccount(in string account, in string folder = "")
     except.display;
     return;
   }
-
+try {
+  
   if (mailbox.protocol == Protocol.IMAP)
     {
       FolderList folderList = mailbox.folderList;
@@ -141,6 +143,11 @@ void editAccount(in string account, in string folder = "")
 	  }
 	}
     }
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+    return;
+  }
       
   try {
     mailbox.loadMessages;
@@ -275,7 +282,7 @@ void editAccount(in string account, in string folder = "")
 
 void mainWindow()
 {
-  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--", true);
+  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--", Yes.hasBox);
 }
 
 void showAbout()
@@ -295,7 +302,7 @@ void showAbout()
 			 "Refer to the README file for help on how to configure Spaminex.",
 			 "",
 			 "This program is intended for simple, basic e-mail pruning."];
-  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex", true);
+  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex", Yes.hasBox);
   wattron(aboutWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -331,7 +338,7 @@ void showLicence()
 			   "You should have received a copy of the GNU General Public License",
 			   "along with this program.  If not, see <http://www.gnu.org/licenses/>."];
   
-  licenseWindow = create_newwin(licenseText.length.to!int+2,licenseWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE", true);
+  licenseWindow = create_newwin(licenseText.length.to!int+2,licenseWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"LICENSE", Yes.hasBox);
   wattron(licenseWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -363,6 +370,7 @@ void initCurses()
   init_pair(ColourPairs.StandardText, COLOR_WHITE, COLOR_BLACK);
   init_pair(ColourPairs.GreenText, COLOR_GREEN, COLOR_BLACK);
   init_pair(ColourPairs.RedText, COLOR_RED, COLOR_BLACK);
+  init_pair(ColourPairs.PasswordBox, COLOR_YELLOW, COLOR_BLUE);
   
   cbreak;
   noecho;
@@ -401,7 +409,7 @@ string accountSelectMenu()
       
   }
 
-  accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account", true);
+  accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account", Yes.hasBox);
   mainMenuHelp;
   auto xx = configurations.byKey();
   foreach(conf; xx) {

@@ -50,7 +50,7 @@ enum encodingType {
   BASE64
 } 
 
-textEncodingType getCharsetTypeEncodingType(in string text) @safe pure
+textEncodingType getTextEncodingType(in string text) @safe pure
 {
   /* Function to determine the encoding type from supplied text.
      This return the text Encoding Type, which is a tuple containing both the character
@@ -107,11 +107,11 @@ string base64Decode(ref string text) pure
   return output;
 }
 
-string decode2(string text)
+string decodeText(string text)
 {
   string output;
   int index;
-  immutable textEncodingType te = getCharsetTypeEncodingType(text);
+  immutable textEncodingType te = getTextEncodingType(text);
   index += te.encodeHeaderLength;
   text = text[index..$];
   if (te.encoding == encodingType.BASE64) {
@@ -227,7 +227,7 @@ string decodeUTF8(T)(string text)
   }
 }
 
-string decodeText(string text)
+string convertText(string text)
 {
   string output;
   /* This function will convert the ASCII subject string
@@ -260,7 +260,7 @@ string decodeText(string text)
 	  zend = zend2 + (z-x);
 	  }
 	
-	output~= decode2(text[x..(x+zend)]);
+	output~= decodeText(text[x..(x+zend)]);
 	x+=zend+2;
 	continue;
       }
@@ -287,11 +287,11 @@ unittest
     assert(hextoChar!Latin2Char("00") == 0);
   }
   assert(hextoChar!Latin1Char("00") == 0);
-  assert(getCharsetTypeEncodingType("utf-8?Q?stuff").charset == charsetType.UTF8);
-  assert(getCharsetTypeEncodingType("utf-8?Q?stuff").encoding == encodingType.ASCII);
+  assert(getTextEncodingType("utf-8?Q?stuff").charset == charsetType.UTF8);
+  assert(getTextEncodingType("utf-8?Q?stuff").encoding == encodingType.ASCII);
 
-  assert(getCharsetTypeEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
-  assert(getCharsetTypeEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
-  assert(decodeText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=") == "Subject: If you can read this yo");
+  assert(getTextEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
+  assert(getTextEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
+  assert(convertText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=") == "Subject: If you can read this yo");
 
 }

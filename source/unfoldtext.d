@@ -38,7 +38,7 @@ public:
   {
     /* We need to decode before unfolding the text, because for Base64 encoded multi-lines
        in email headers, they are encoded separately. */
-    m_textArray~=text.decodeText;
+    m_textArray~=text.convertText;
   }
 
   void clear() @safe
