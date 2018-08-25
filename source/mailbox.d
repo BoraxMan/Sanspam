@@ -47,6 +47,7 @@ string getDomainFromEmailAddress(in string email)
   return status.domainPart();			       
 }
 
+  
 
 class Mailbox
 {
@@ -55,8 +56,10 @@ private:
   Config m_config;
   Protocol m_protocol;
   
+  
 public:
 
+  
   @property Protocol protocol()
   {
     return m_protocol;
@@ -66,19 +69,23 @@ public:
   {
     return m_connection.m_messages.length;
   }
-  
-  auto opApply(int delegate(ref Message) operations) {
+
+  @property final ref Messages messages() pure
+  {
+    return this.m_connection.messages();
+  }
+
+    auto opApply(int delegate(ref Message) operations) {
     int result;
-    for (int x = 1; x <= m_connection.m_messages.length; x++) {
-      Message *m = m_connection.m_messages[x];
-      result = operations(*m);
+    for (int x = 0; x < m_connection.m_messages.length; x++) {
+      result = operations(m_connection.m_messages[x]);
       
       if (result) {
 	break;
       }
     }
     return result;
-  }
+    }
 
   bool bounceMessage(in int count)
   {
@@ -123,7 +130,6 @@ public:
 
     return true;
 }
-
   
   final @property size_t size() @safe const
   {
@@ -202,12 +208,9 @@ public:
     }
 
     m_connection.login(username, password);
-    password = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+    password.length = 0;
     return true;
   }
-
-
-  
 }
 
 unittest

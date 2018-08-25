@@ -23,6 +23,7 @@ import std.typecons;
 import std.string;
 import std.array;
 import std.format;
+import std.algorithm;
 import processline;
 import config;
 import message;
@@ -76,15 +77,15 @@ string insertValue(in string format, in int value, in string text = "") pure
   return(message.data);
 }
 
-struct Messages
-{ /* The only real purpose of this struct is to use a numbering system which coincides with
-     the numbers that the server gives messages.  D starts its array index at 0, whereas we want 1 to be the first element.
 
-     This way we don't have to keep adjusting the index by one. */
-  
-  int begin = 1;
-  int end;
+struct Messages
+{
   Message[] m_messages;
+
+  this(Messages _messages)
+  {
+    this.m_messages = _messages.m_messages;
+  }
   
   final void add(Message message) @safe
   {
@@ -98,12 +99,12 @@ struct Messages
   
   final bool empty() @safe const pure
   {
-    return ((begin - 1) == m_messages.length);
+    return (m_messages.length == 0);
   }
 
   final void popFront() @safe
   {
-    ++begin;
+    m_messages = m_messages[1..$];
   }
 
   final size_t length() @safe const pure
@@ -113,7 +114,7 @@ struct Messages
   
   final Message front() @safe pure
   {
-    return(m_messages[begin-1]);
+    return(m_messages[0]);
   }
   
   final ref auto opIndex(int n)
@@ -124,8 +125,9 @@ struct Messages
       }
   body
     {
-      return &m_messages[n-1];
+      return m_messages[n];
     }
+
 }
 
 
@@ -162,7 +164,11 @@ public:
   abstract queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe;
   abstract string getQueryFormat(Command command) @safe pure;
 
-
+ @property final ref Messages messages() @safe pure
+  {
+    return m_messages;
+  }
+  
   final bool startTLS(EncryptionMethod method = EncryptionMethod.TLSv1_2) @trusted
   {
     immutable string message = "STARTTLS";
@@ -195,7 +201,8 @@ public:
 	we want to delete.
 	We will get the UID again and compare against the string provided, if one exists.
 	This makes sure that we don't delete the wrong message, in case something else has happened which
-	has changed the mailbox since this program was started.
+	has changed the mailbox since this program was started, or some other software issue or strange
+	bug or occurence.
     */
     
     {
@@ -213,14 +220,8 @@ public:
   final bool remove(in string uidl)
   {
     bool result;
-    int x;
-    // Search its position in the mailbox.
-    foreach(m; m_messages) {
-      x++;
-      if (m.uidl == uidl) {
-	result = remove(x, m.uidl);
-      }
-    }
+    auto m = m_messages.find!(a => a.uidl == uidl).front;
+    result = remove(m.number, m.uidl);
     return result;
   }
 
@@ -228,32 +229,33 @@ public:
   final bool remove(in int messageNumber, in string uidl = "", in string trashFolder = "")
     in
       {
-	assert (messageNumber > 0);
+	assert (messageNumber >= 0);
       }
 
   body {
+    auto targetMessage = messages.find!(a => a.number == messageNumber).front;
+    
     // Check the UID matches the message number we are deleting, if we have UID supported that is.
     if (m_supportUID) {
-      immutable bool result = checkUID(uidl, messageNumber);
+      immutable bool result = checkUID(uidl, targetMessage.number);
       if (!result) {
-	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(messageNumber)~" instead.");
+	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(targetMessage.number)~" instead.");
       }
       // If we got this far, we don't have a UID to check against, or the check passed.  So delete the message.
 
       // But first, if we have specified a Trash folder, copy to trash.
       if (trashFolder != "") { // A folder has been specified.
-	string trashMessageQuery = insertValue(getQueryFormat(Command.Copy),messageNumber, trashFolder);
+	string trashMessageQuery = insertValue(getQueryFormat(Command.Copy),targetMessage.number, trashFolder);
 	auto trashResponse = query(trashMessageQuery);
 	if (trashResponse.status == MessageStatus.BAD) {
 	  throw new SpaminexException("Could not move message to Trash", "Error moving message to "~trashFolder~".  Options are to check the correct Trash folder is specified, or delete the message without moving to Trash.");
 	}
       }
 
-
-      string messageQuery = insertValue(getQueryFormat(Command.Delete), messageNumber);
+      string messageQuery = insertValue(getQueryFormat(Command.Delete), targetMessage.number);
       auto response = query(messageQuery);
       if (response.status == MessageStatus.OK) {
-	m_messages[messageNumber].deleted = true;
+	targetMessage.deleted = true;
 	return true;
       }
     }

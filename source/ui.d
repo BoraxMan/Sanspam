@@ -99,7 +99,6 @@ void editAccount(in string account, in string folder = "")
 
   scope(exit)
     {
-
       foreach(ref x; messageItems ) {
 	free_item(x);
       }
@@ -126,6 +125,9 @@ void editAccount(in string account, in string folder = "")
   try {
     mailbox = new Mailbox(account);
     mailbox.login;
+    touchwin(accountEditWindow);
+    redrawwin(accountEditWindow);
+    
   } catch (SpaminexException e) {
     auto except = new ExceptionHandler(e);
     except.display;
@@ -156,58 +158,62 @@ try {
     except.display;
   }
 
-  foreach(ref m; mailbox)
-    {
-      currentItem = new_item(m.from[0..((m.from.length < COLS/3) ? m.from.length : COLS/3)].toStringz, m.subject.toStringz);
-      if (currentItem == null) {
-	string error;
-	if (errno == E_BAD_ARGUMENT) {
-	  error = "Incorrect or out of range argument";
-	} else if (errno == E_SYSTEM_ERROR) {
-	  error = "System error (out of memory?)";
-	} else {
-	  error = "Unknown error";
+  try {
+    foreach(ref m; mailbox)
+      {
+	currentItem = new_item(m.from[0..((m.from.length < COLS/3) ? m.from.length : COLS/3)].toStringz, m.subject.toStringz);
+	if (currentItem == null) {
+	  string error;
+	  if (errno == E_BAD_ARGUMENT) {
+	    error = "Incorrect or out of range argument";
+	  } else if (errno == E_SYSTEM_ERROR) {
+	    error = "System error (out of memory?)";
+	  } else {
+	    error = "Unknown error";
+	  }
+	  throw new SpaminexException("Failed creating menu entry for "~m.subject.replace(":","I"),error);
 	}
-	throw new SpaminexException("Failed creating menu entry for "~m.subject.replace(":","I"),error);
+	set_item_userptr(currentItem, &m);
+	messageItems~= currentItem;
       }
-      set_item_userptr(currentItem, &m);
-      
-      messageItems~= currentItem;
+ 
+    messageItems~=null;
+  
+    messageMenu = new_menu(messageItems.ptr);
+    if (messageMenu == null) {
+      throw new SpaminexException("Internal Error","Could not create menu of messages for account "~account);
     }
+
+    set_menu_win(messageMenu, accountEditWindow);
+    set_menu_sub(messageMenu, derwin(accountEditWindow,LINES-4,COLS-2,0,0));
+    set_menu_mark(messageMenu, "*");
+    set_menu_format(messageMenu,LINES-4,1);
   
-  messageItems~=null;
-  
-  messageMenu = new_menu(messageItems.ptr);
-  if (messageMenu == null) {
-    throw new SpaminexException("Internal Error","Could not create menu of messages for account "~account);
+    set_menu_fore(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuFore));
+    set_menu_back(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuBack));
+
+    keypad(accountEditWindow, true);
+
+    post_menu(messageMenu);
+    int accountx, accounty;
+    string footer;
+    getmaxyx(accountEditWindow,accounty, accountx);
+    wmove(accountEditWindow,accounty,1);
+    if (mailbox.size == 0) {
+      footer~="No e-mails.";
+    } else if (mailbox.size == 1) {
+      footer~="1 e-mail.";
+    } else {
+      footer~=mailbox.size.to!string~" e-mails.";
+    }
+    footer~="  Editing account : "~account~".";
+    wprintw(accountEditWindow,footer.toStringz);
+    wrefresh(accountEditWindow);
+    mailboxViewHelp;
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
   }
-
-  set_menu_win(messageMenu, accountEditWindow);
-  set_menu_sub(messageMenu, derwin(accountEditWindow,LINES-4,COLS-2,0,0));
-  set_menu_mark(messageMenu, "*");
-  set_menu_format(messageMenu,LINES-4,1);
-  
-  set_menu_fore(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuFore));
-  set_menu_back(messageMenu, COLOR_PAIR(ColourPairs.AccountMenuBack));
-
-  keypad(accountEditWindow, true);
-
-  post_menu(messageMenu);
-  int accountx, accounty;
-  string footer;
-  getmaxyx(accountEditWindow,accounty, accountx);
-  wmove(accountEditWindow,accounty,1);
-  if (mailbox.size == 0) {
-    footer~="No e-mails.";
-  } else if (mailbox.size == 1) {
-    footer~="1 e-mail.";
-  } else {
-    footer~=mailbox.size.to!string~" e-mails.";
-  }
-  footer~="  Editing account : "~account~".";
-  wprintw(accountEditWindow,footer.toStringz);
-  wrefresh(accountEditWindow);
-  mailboxViewHelp;
 
   int c;
   while ((c = wgetch(accountEditWindow)) != 'q')
@@ -259,24 +265,30 @@ try {
       wrefresh(accountSelectionWindow);
     }
 
-  for (int count = 0; count < item_count(messageMenu); count++) {
-    if(item_value(messageItems[count]) == true) { // Has been tagged in the menu.
-      if((mailbox.remove(count+1, (cast(Message*)item_userptr(messageItems[count])).uidl)) == false) {
-	writeStatusMessage("FAILED to delete message for "~(cast(Message*)item_userptr(messageItems[count])).uidl);
-      } else {
-	writeStatusMessage("Deleted message "~(cast(Message*)item_userptr(messageItems[count])).uidl);
-      }
-      
-      if(((cast(Message*)item_userptr(messageItems[count])).bounce) == true) {
-	writeStatusMessage("Bouncing to "~(cast(Message*)item_userptr(messageItems[count])).from);
-	mailbox.bounceMessage(count+1);
-	clearStatusMessage;
 
+  try {
+    foreach(ref targetMessage; mailbox.messages.filter!(a => a.deleted == true))
+      {
+	if(mailbox.remove(targetMessage.number, targetMessage.uidl) == false) {
+	  writeStatusMessage("FAILED to delete message for "~targetMessage.uidl);
+	} else {
+	  writeStatusMessage("Deleted message "~targetMessage.uidl);
+	}
+     
+	if(targetMessage.bounce == true) {
+	  writeStatusMessage("Bouncing to "~targetMessage.from);
+	  mailbox.bounceMessage(targetMessage.number);
+	  clearStatusMessage;
+	}
       }
-    }
+  
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+  } finally {
+    mailbox.close;
   }
 
-  mailbox.close;
   wrefresh(accountEditWindow);
 }
 
@@ -381,8 +393,6 @@ void initCurses()
 
 string accountSelectMenu()
 {
-  
-  
   MENU* mailboxMenu = null;
   ITEM*[] mailboxes;
   ITEM* currentItem = null;
@@ -411,75 +421,83 @@ string accountSelectMenu()
 
   accountSelectionWindow = create_newwin(10, COLS-10,(LINES/2-5),5,ColourPairs.MainTitleText, ColourPairs.MainBorder,"Select Account", Yes.hasBox);
   mainMenuHelp;
-  auto xx = configurations.byKey();
-  foreach(conf; xx) {
-    //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
-    currentItem = new_item(conf.to!string.toStringz,"".toStringz);
-    if (currentItem == null) {
-      throw new SpaminexException("Could not create menu entry","Failed creating menu entry for "~conf.to!string);
 
+  try {
+    auto xx = configurations.byKey();
+    foreach(conf; xx) {
+      //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
+      currentItem = new_item(conf.to!string.toStringz,"".toStringz);
+      if (currentItem == null) {
+	throw new SpaminexException("Could not create menu entry","Failed creating menu entry for "~conf.to!string);
+
+      }
+      mailboxes~=currentItem;
     }
-    mailboxes~=currentItem;
-  }
 
-  mailboxes~=null;
-  mailboxMenu = new_menu(mailboxes.ptr);
-  if (mailboxMenu == null) {
-    throw new SpaminexException("Internal Error","Could not allocate menu.");
-  }
+    mailboxes~=null;
+    mailboxMenu = new_menu(mailboxes.ptr);
+    if (mailboxMenu == null) {
+      throw new SpaminexException("Internal Error","Could not allocate menu.");
+    }
   
-  set_menu_win(mailboxMenu, accountSelectionWindow);
-  set_menu_sub(mailboxMenu,derwin(accountSelectionWindow,6,38,3,1));
-  set_menu_mark(mailboxMenu," * ");
-  set_menu_fore(mailboxMenu, COLOR_PAIR(ColourPairs.MenuFore));
-  set_menu_back(mailboxMenu, COLOR_PAIR(ColourPairs.MenuBack));
+    set_menu_win(mailboxMenu, accountSelectionWindow);
+    set_menu_sub(mailboxMenu,derwin(accountSelectionWindow,6,38,3,1));
+    set_menu_mark(mailboxMenu," * ");
+    set_menu_fore(mailboxMenu, COLOR_PAIR(ColourPairs.MenuFore));
+    set_menu_back(mailboxMenu, COLOR_PAIR(ColourPairs.MenuBack));
 
-  keypad(accountSelectionWindow,true);
-  post_menu(mailboxMenu);
-  wrefresh(accountSelectionWindow);
+    keypad(accountSelectionWindow,true);
+    post_menu(mailboxMenu);
+    wrefresh(accountSelectionWindow);
 
-  while ((c = wgetch(accountSelectionWindow)) != 'q')
-    {
-      switch (c)
-        {
-	case 'a':
-	  goto case;
-	case 'A':
-	  showAbout;
-	  touchwin(accountSelectionWindow);
-	  redrawwin(accountSelectionWindow);
-	  mainMenuHelp;
-	  break;
-	case 'l':
-	  goto case;
-	case 'L':
-	  showLicence;
-	  touchwin(accountSelectionWindow);
-	  redrawwin(accountSelectionWindow);
-	  mainMenuHelp;
-	  break;
-        case KEY_DOWN:
-	  menu_driver(mailboxMenu, REQ_DOWN_ITEM);
-	  break;
-        case KEY_UP:
-	  menu_driver(mailboxMenu, REQ_UP_ITEM);
-	  break;
-        case KEY_NPAGE:
-	  menu_driver(mailboxMenu, REQ_SCR_DPAGE);
-	  break;
-        case KEY_PPAGE:
-	  menu_driver(mailboxMenu, REQ_SCR_UPAGE);
-	  break;
-	case ' ':
-	case '\n':
-	  menu_driver(mailboxMenu, REQ_TOGGLE_ITEM);
-	  account = item_name(current_item(mailboxMenu)).to!string;
-	  return account;
-        default:
-	  break;
-        }
-      wrefresh(accountSelectionWindow);
-      termResize;
-    }
+    while ((c = wgetch(accountSelectionWindow)) != 'q')
+      {
+	switch (c)
+	  {
+	  case 'a':
+	    goto case;
+	  case 'A':
+	    showAbout;
+	    touchwin(accountSelectionWindow);
+	    redrawwin(accountSelectionWindow);
+	    mainMenuHelp;
+	    break;
+	  case 'l':
+	    goto case;
+	  case 'L':
+	    showLicence;
+	    touchwin(accountSelectionWindow);
+	    redrawwin(accountSelectionWindow);
+	    mainMenuHelp;
+	    break;
+	  case KEY_DOWN:
+	    menu_driver(mailboxMenu, REQ_DOWN_ITEM);
+	    break;
+	  case KEY_UP:
+	    menu_driver(mailboxMenu, REQ_UP_ITEM);
+	    break;
+	  case KEY_NPAGE:
+	    menu_driver(mailboxMenu, REQ_SCR_DPAGE);
+	    break;
+	  case KEY_PPAGE:
+	    menu_driver(mailboxMenu, REQ_SCR_UPAGE);
+	    break;
+	  case ' ':
+	  case '\n':
+	    menu_driver(mailboxMenu, REQ_TOGGLE_ITEM);
+	    account = item_name(current_item(mailboxMenu)).to!string;
+	    return account;
+	  default:
+	    break;
+	  }
+	wrefresh(accountSelectionWindow);
+	termResize;
+      }
+  
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+  }
+ 
   return account;
 }

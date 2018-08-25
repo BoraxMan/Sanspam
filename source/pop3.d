@@ -213,8 +213,8 @@ public:
 	if(m_supportUID) {
 	  m.uidl = getUID(x);
 	}
+	m.number = x;
 	m_messages.add(m);
-
       }
     return true;
   }

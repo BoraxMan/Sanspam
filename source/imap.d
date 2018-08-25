@@ -236,10 +236,13 @@ public:
     foreach(u; splitUIDs) {
       uids~=parseUID(u);
     }
+
+    int counter = 1;
     foreach(enumerator,message; splitEmails.enumerate(0))
       {
 	Message m;
 	m = pmd.messageFactory(message);
+	m.number = counter++;
 	m_messages.add(m);
 	if (m_supportUID) {
 	  m.uidl = uids[enumerator];

@@ -43,7 +43,7 @@ private:
   bool m_bounce = false;
   bool m_isSpam = false; // Innocent until proven guilty.
   bool m_loaded = false;
-  uint m_messagenumber; // The message number as per the server.  For POP
+  uint m_messageNum; // The message number as per the server.  For POP
                         // servers this starts at 1 and is incremented.
   
 public:
@@ -80,12 +80,12 @@ public:
 
   @property uint number() @safe const pure nothrow
   {
-    return m_messagenumber;
+    return m_messageNum;
   }
 
   @property void number(uint num) @safe pure nothrow
   {
-    m_messagenumber = num;
+    m_messageNum = num;
   }
   
   @property bool loaded() @safe const pure nothrow

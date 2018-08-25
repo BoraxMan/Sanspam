@@ -18,6 +18,7 @@
  */
 
 import mailprotocol;
+import core.stdc.locale;
 import deimos.ncurses;
 import deimos.ncurses.menu;
 import std.array;
@@ -32,12 +33,19 @@ import mailbox;
 import ui;
 import uidefs;
 
+extern(C) int setlocale(int, char*);
+
 version(DMD) {
   import etc.linux.memoryerror;
 }
 
 int main()
 {
+
+  version(DigitalMars) {
+  core.stdc.locale.setlocale(LC_ALL,"".toStringz);
+  }
+    
   version(DMD) {
     static if (is(typeof(registerMemoryErrorHandler)))
       registerMemoryErrorHandler();

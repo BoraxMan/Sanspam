@@ -3,14 +3,13 @@ import deimos.ncurses.menu;
 import std.string;
 import std.conv;
 import std.typecons;
+import spaminexexception;
 import uidefs;
-
-
-const char CharDel = 127;
 
 string getPassword()
 {
-  char[512] text;
+  const size_t bufferSize = 512;
+  char[bufferSize] text;
   size_t endPosition;
   const char CharDelete = 127;
   size_t charPos;
@@ -21,6 +20,9 @@ string getPassword()
   noecho();
 
   for(;;) {
+    if (charPos >= bufferSize) {
+      throw new SpaminexException("Overflow", "Password entered exceeded allowable maximum");
+    }
     c = wgetch(passwordWindow);
     if (c == '\n' || c == '\r') {
       break;

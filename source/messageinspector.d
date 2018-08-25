@@ -4,6 +4,7 @@ import deimos.ncurses;
 import deimos.ncurses.menu;
 import std.string;
 import std.typecons;
+debug {import std.conv;}
 import uidefs;
 import message;
 
@@ -25,6 +26,23 @@ struct messageInspector
     wattroff(inspectorWindow, A_BOLD);
     wmove(inspectorWindow, row, dataColumn);
     wprintw(inspectorWindow, data.toStringz);
+  }
+
+  void printEmailStatus()
+  {
+    if (emailStatus.valid == true) {
+      wattron(inspectorWindow, COLOR_PAIR(ColourPairs.GreenText) | A_BOLD);
+      wmove(inspectorWindow, row, dataColumn);
+      wprintw(inspectorWindow, "Email address is valid.");
+      wattroff(inspectorWindow, A_BOLD);
+    } else {
+      wattron(inspectorWindow, COLOR_PAIR(ColourPairs.RedText) | A_BOLD);
+      wmove(inspectorWindow, row, titleColumn);
+      wprintw(inspectorWindow, "Email address is not valid.");
+      row++;
+      wprintw(inspectorWindow, emailStatus.toString.toStringz);
+      wattroff(inspectorWindow, A_BOLD);
+    }
   }
   
   this(in Message *_message)
@@ -56,22 +74,16 @@ struct messageInspector
     printMessageInspectorItem("To : ", m_message.to);
     printMessageInspectorItem("From : ", m_message.from);
 
-    wmove(inspectorWindow, ++row, dataColumn);
-    if (emailStatus.valid == true) {
-      wattron(inspectorWindow, COLOR_PAIR(ColourPairs.GreenText) | A_BOLD);
-      wmove(inspectorWindow, row, dataColumn);
-      wprintw(inspectorWindow, "Email address is valid.");
-      wattroff(inspectorWindow, A_BOLD);
-    } else {
-      wattron(inspectorWindow, COLOR_PAIR(ColourPairs.RedText) | A_BOLD);
-      wmove(inspectorWindow, row, titleColumn);
-      wprintw(inspectorWindow, "Email address is not valid.");
-      row++;
-      wprintw(inspectorWindow, emailStatus.toString.toStringz);
-      wattroff(inspectorWindow, A_BOLD);
+    debug{
+      printMessageInspectorItem("Number : ", m_message.number.to!string);
+      printMessageInspectorItem("UIDL : ", m_message.uidl);
     }
-    wattron(inspectorWindow, COLOR_PAIR(ColourPairs.StandardText));
 
+    wmove(inspectorWindow, ++row, dataColumn);
+
+    printEmailStatus;
+
+    wattron(inspectorWindow, COLOR_PAIR(ColourPairs.StandardText));
     printMessageInspectorItem("Return Path : ", m_message.returnPath);
     printMessageInspectorItem("Received : ", m_message.received);
 
