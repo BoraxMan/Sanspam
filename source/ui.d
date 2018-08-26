@@ -1,5 +1,6 @@
+// Written in the D Programming language.
 /*
- * : Mailbox utility to delete/bounce spam on server interactively.
+ * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -277,7 +278,10 @@ try {
      
 	if(targetMessage.bounce == true) {
 	  writeStatusMessage("Bouncing to "~targetMessage.from);
-	  mailbox.bounceMessage(targetMessage.number);
+
+	  if(mailbox.bounceMessage(targetMessage.number) == false) {
+	    writeStatusMessage("Could not bounce to "~targetMessage.returnPath);
+	  }
 	  clearStatusMessage;
 	}
       }
@@ -370,6 +374,11 @@ void showLicence()
 
 void initCurses()
 {
+  Config m_config;
+  if (configExists("spaminex")) {
+    m_config = getConfig("spaminex");
+  }
+
   initscr;
   start_color;
   init_pair(ColourPairs.MainTitleText, COLOR_MAGENTA, COLOR_BLACK);
@@ -423,9 +432,11 @@ string accountSelectMenu()
   mainMenuHelp;
 
   try {
-    auto xx = configurations.byKey();
-    foreach(conf; xx) {
-      //    mailboxes~=new_item(conf.to!string.toStringz,conf.to!string.toStringz);
+    auto configurationRange = configurations.byKey();
+    foreach(conf; configurationRange) {
+      if(conf == "spaminex") {
+	continue;
+      }
       currentItem = new_item(conf.to!string.toStringz,"".toStringz);
       if (currentItem == null) {
 	throw new SpaminexException("Could not create menu entry","Failed creating menu entry for "~conf.to!string);

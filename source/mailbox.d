@@ -1,3 +1,4 @@
+// Written in the D Programming language.
 /*
  * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
@@ -21,6 +22,8 @@ import std.array;
 import std.conv;
 import std.string;
 import std.format;
+import std.net.isemail;
+import std.algorithm;
 import std.net.isemail;
 import spaminexexception;
 import processline;
@@ -93,15 +96,23 @@ public:
     string domain;
     string smtp_server;
     ushort smtp_port;
-
+    
     scope(failure)
       {
 	if (smtp !is null) {
 	  smtp.close;
 	}
       }
+    
+    auto targetMessage = messages.find!(a => a.number == count).front;
 
-    string recipient = m_connection.m_messages[count].from;
+    string recipient = targetMessage.returnPath;
+
+    auto emailStatus = isEmail(recipient);
+    if (!emailStatus.valid) {
+      return false;
+    }
+    
     if(m_config.hasSetting("domain")) {
 	domain = m_config.getSetting("domain");
       } else { // Try to guess from the account details
@@ -125,8 +136,8 @@ public:
     smtp = new SMTP(smtp_server,smtp_port);
     smtp.login(m_config.getSetting("username"),"");
     auto message = appender!string();
-    message.formattedWrite(bounceFormat,domain,m_connection.m_messages[count].to,m_connection.m_messages[count].to,domain,m_connection.m_messages[count].to, m_connection.m_messages[count].to);
-    smtp.bounceMessage(recipient, domain,message.data);
+    message.formattedWrite(bounceFormat,domain, targetMessage.to, targetMessage.to, domain, targetMessage.to, targetMessage.to);
+    smtp.bounceMessage(recipient, domain, message.data);
 
     return true;
 }

@@ -1,7 +1,8 @@
 SPAMINEX, by Dennis Katsonis, 2018
+===
 
-* Introduction
-
+Introduction
+---
 Spaminex is an interactive tool to allow you to easily scan your e-mail Inbox and delete any messages you don't want.  In addition to this, you can bounce back an error message to the sender, which may dissuade spammers from reusing your e-mail address. Spaminex is inspired by Save My Modem by Enrico Tasso and SpamX by Emmanual Vasilakis, which are two simple, easy to set up tools that I used to use, but aren't maintained any more and require too much work to justify update.
 
 This program is intended for simple, basic e-mail pruning.
@@ -10,8 +11,8 @@ Spaminex supports POP and IMAP accounts, and also supports SSL for secure connec
 
 This is more suited to those who use e-mail clients and prefer to download messages to their computer, but also prefer not to allow spam, or potentially harmful messages to be downloaded at all.  Instead of running a risk having it downloaded by the e-mail client, Spaminex allows you to delete it on the server, without being exposed to any attachments or e-mail content.
 
-* How to use
-
+How to use
+---
 Spaminex reads its options from an INI style configuration file.  The configuration file lives in the .config/spaminex/ directory/folder in your home directory and is titled "accounts.conf".  Create a directory called "spaminex" in your ".config" folder and using your preferred text editor, create a file called "accounts.conf".  
 
 Check the Configuration Options section below for configuration options.
@@ -20,13 +21,13 @@ When spaminex is started, it displays a list of configured e-mail accounts.  Sel
 
 Pressing Q will Quit, and delete all selected messages and bounce those marked for deletion.  Pressing C will cancel all operations and no e-mails will be deleted.
 
-* Configuration Options
-
-Configuration is in configuration group, with each group pertaining to a specific e-mail account you have.  The account name is specified on its own line between square brackets "[ & ]".  After this, list your options in the format...
+Configuration Options
+---
+Configuration is in configuration group, with each group pertaining to a specific e-mail account you have.  The account name is specified on its own line between square brackets "[ & ]".  After this, list your options in the format.  Options specific for the Spaminex program are listed under a section called [spaminex].  Obviously, you cannot call your own e-mail account configuration 'spaminex'.
 
 option = value.
 
-Valid options are
+Valid options for mail accounts are
 
 username
 	The username used to log into the mail server.
@@ -63,6 +64,12 @@ pop = pop.outlook.com
 imap = imap-mail.outlook.com
 username = JohnDoe@hotmail.com
 
-* Development
 
+Valid options for spaminex are
+
+colourscheme
+	The colour scheme to use.  Options are "neon", "blue" and "white".
+
+Development
+---
 This is partly written for personal use, and partly as a small project to begin learning the D Programming Language.  It is my first proper D program, though still somewhat written in an idiomatic C++ style instead of an idiomatic D style.

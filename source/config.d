@@ -1,3 +1,4 @@
+// Written in the D Programming language.
 /*
  * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
@@ -196,6 +197,11 @@ public:
   final this(in char[] title) @safe nothrow
   {
     m_configTitle = title.to!string;
+  }
+
+  final bool empty() @safe pure nothrow
+  {
+    return (m_configOption.length == 0);
   }
   
   final void modify(string key, string value = "") @safe nothrow
