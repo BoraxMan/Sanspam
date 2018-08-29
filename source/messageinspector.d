@@ -18,10 +18,9 @@
  *
  */
 
-import std.net.isemail;
-import std.regex;
 import deimos.ncurses;
 import deimos.ncurses.menu;
+import std.net.isemail;
 import std.string;
 import std.typecons;
 debug {import std.conv;}
@@ -70,22 +69,7 @@ struct messageInspector
     int y;
     int x;
     m_message = _message;
-    string email;
-    ptrdiff_t i = m_message.from.indexOfAny("<"); // This means the e-mail address is enclosed in brackets.
-    // If so, extract e-mail address.
-
-    if (i != -1)
-      {
-	auto result = matchFirst(m_message.from, regex(r"<.+>"));
-	if (result.length == 0) {
-	  // If the regex extraction failed, set back to the orginal and hope for the best
-	  email = m_message.from;
-	} else {
-	  email = result.hit[1..$-1]; // 1..$-1 is to remove the parenthesis.
-	}
-      }
-    
-    emailStatus = isEmail(email);
+    emailStatus = isEmail(m_message.returnPath.cleanEmailAddress);
     inspectorWindow = create_newwin(LINES-3,COLS-2,1,1,ColourPairs.AccountMenuFore, ColourPairs.AccountMenuBack,"Message Details", No.hasBox);
 
     wattron(inspectorWindow, COLOR_PAIR(ColourPairs.StandardText));

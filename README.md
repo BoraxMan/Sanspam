@@ -1,5 +1,9 @@
-SPAMINEX, by Dennis Katsonis, 2018
+SPAMINEX
 ===
+
+Author
+---
+Dennis Katsonis
 
 Introduction
 ---
@@ -70,6 +74,31 @@ Valid options for spaminex are
 colourscheme
 	The colour scheme to use.  Options are "neon", "blue" and "white".
 
+allowsmallterm
+	By default, spaminex will report an error if the terminal is less than 80x25.
+	But if you wish to use spaminex on smaller terminals, with difficulty, set this to
+	"true".  Any other setting will be regared as "false".
+
 Development
 ---
 This is partly written for personal use, and partly as a small project to begin learning the D Programming Language.  It is my first proper D program, though still somewhat written in an idiomatic C++ style instead of an idiomatic D style.
+
+Licence
+---
+Copyright Dennis Katsonis, 2018
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Version
+---
+0.1.0

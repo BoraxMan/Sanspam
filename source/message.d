@@ -23,10 +23,47 @@ import std.algorithm;
 import std.string;
 import std.datetime;
 import std.conv;
+import std.regex;
 import unfoldtext;
 import processline;
 
 struct Mandatory {}; // User Defined Attribute.  Set on all Message fields which cannot be left blank.
+
+
+/****
+ * This extracts the e-mail address component from a string where the e-mail
+ * address is contained within angled brackets.
+ */
+
+string cleanEmailAddress(in string _email)
+{
+
+  string email;
+  ptrdiff_t i = _email.indexOfAny("<"); // This means the e-mail address is enclosed in brackets.
+  // If so, extract e-mail address.
+  
+  if (i != -1)
+    {
+      auto result = matchFirst(_email, regex(r"<.+>"));
+      if (result.empty) {
+	// If the regex extraction failed, set back to the orginal and hope for the best
+	email = _email;
+      } else {
+	email = result.hit[1..$-1]; // 1..$-1 is to remove the parenthesis.
+      }
+    } else {
+    email = _email;
+  }
+
+  return email;
+}
+
+unittest {
+  assert(cleanEmailAddress("Recipient <test@test.com>") == "test@test.com");
+  assert(cleanEmailAddress("<test@test2.com.au> Recipient") == "test@test2.com.au");
+  assert(cleanEmailAddress("test@test.com") == "test@test.com");
+  assert(cleanEmailAddress("<test@test.com>") == "test@test.com");
+}
 
 class Message
 {

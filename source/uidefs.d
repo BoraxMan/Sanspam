@@ -22,13 +22,23 @@
 
 import deimos.ncurses;
 import deimos.ncurses.menu;
+import std.conv;
 import std.string;
 import std.typecons;
 
+string _version = "0.1.0";
 const int SIGWINCH = 28;
 bool termResized = false;
+alias ncursesColourPair = Tuple!(short, "foreground", short, "background");
 
-enum ColourPairs : int {
+WINDOW *accountSelectionWindow = null;
+WINDOW *accountEditWindow = null;
+WINDOW *statusWindow = null;
+WINDOW *headerWindow = null;
+WINDOW *inspectorWindow = null;
+WINDOW *passwordWindow = null;
+
+enum ColourPairs : chtype {
   MainBorder = 1,
     MainTitleText,
     StatusBar,
@@ -42,12 +52,56 @@ enum ColourPairs : int {
     PasswordBox
     }
 
-WINDOW *accountSelectionWindow = null;
-WINDOW *accountEditWindow = null;
-WINDOW *statusWindow = null;
-WINDOW *headerWindow = null;
-WINDOW *inspectorWindow = null;
-WINDOW *passwordWindow = null;
+ncursesColourPair[ColourPairs] neon;
+ncursesColourPair[ColourPairs] blue;
+ncursesColourPair[ColourPairs] white;
+
+static this()
+{
+  neon[ColourPairs.MainTitleText] = ncursesColourPair(COLOR_MAGENTA, COLOR_BLACK);
+  neon[ColourPairs.MainBorder] = ncursesColourPair(COLOR_CYAN, COLOR_BLACK);
+  neon[ColourPairs.StatusBar] = ncursesColourPair(COLOR_WHITE, COLOR_RED);
+  neon[ColourPairs.MenuFore] = ncursesColourPair(COLOR_YELLOW, COLOR_BLUE);
+  neon[ColourPairs.MenuBack] = ncursesColourPair(COLOR_GREEN, COLOR_BLACK);
+  neon[ColourPairs.AccountMenuFore] = ncursesColourPair(COLOR_WHITE, COLOR_RED);
+  neon[ColourPairs.AccountMenuBack] = ncursesColourPair(COLOR_WHITE, COLOR_BLACK);
+  neon[ColourPairs.StandardText] = ncursesColourPair(COLOR_WHITE, COLOR_BLACK);
+  neon[ColourPairs.GreenText] = ncursesColourPair(COLOR_GREEN, COLOR_BLACK);
+  neon[ColourPairs.RedText] = ncursesColourPair(COLOR_RED, COLOR_BLACK);
+  neon[ColourPairs.PasswordBox] = ncursesColourPair(COLOR_YELLOW, COLOR_BLUE);
+
+  blue[ColourPairs.MainTitleText] = ncursesColourPair(COLOR_WHITE, COLOR_BLUE);
+  blue[ColourPairs.MainBorder] = ncursesColourPair(COLOR_YELLOW, COLOR_BLUE);
+  blue[ColourPairs.StatusBar] = ncursesColourPair(COLOR_WHITE, COLOR_RED);
+  blue[ColourPairs.MenuFore] = ncursesColourPair(COLOR_BLACK, COLOR_GREEN);
+  blue[ColourPairs.MenuBack] = ncursesColourPair(COLOR_GREEN, COLOR_BLUE);
+  blue[ColourPairs.AccountMenuFore] = ncursesColourPair(COLOR_WHITE, COLOR_RED);
+  blue[ColourPairs.AccountMenuBack] = ncursesColourPair(COLOR_WHITE, COLOR_BLUE);
+  blue[ColourPairs.StandardText] = ncursesColourPair(COLOR_WHITE, COLOR_BLUE);
+  blue[ColourPairs.GreenText] = ncursesColourPair(COLOR_GREEN, COLOR_BLUE);
+  blue[ColourPairs.RedText] = ncursesColourPair(COLOR_RED, COLOR_BLUE);
+  blue[ColourPairs.PasswordBox] = ncursesColourPair(COLOR_YELLOW, COLOR_BLUE);
+
+  white[ColourPairs.MainTitleText] = ncursesColourPair(COLOR_BLACK, COLOR_WHITE);
+  white[ColourPairs.MainBorder] = ncursesColourPair(COLOR_BLACK, COLOR_WHITE);
+  white[ColourPairs.StatusBar] = ncursesColourPair(COLOR_WHITE, COLOR_RED);
+  white[ColourPairs.MenuFore] = ncursesColourPair(COLOR_GREEN, COLOR_BLACK);
+  white[ColourPairs.MenuBack] = ncursesColourPair(COLOR_GREEN, COLOR_WHITE);
+  white[ColourPairs.AccountMenuFore] = ncursesColourPair(COLOR_MAGENTA, COLOR_WHITE);
+  white[ColourPairs.AccountMenuBack] = ncursesColourPair(COLOR_BLACK, COLOR_WHITE);
+  white[ColourPairs.StandardText] = ncursesColourPair(COLOR_BLACK, COLOR_WHITE);
+  white[ColourPairs.GreenText] = ncursesColourPair(COLOR_GREEN, COLOR_WHITE);
+  white[ColourPairs.RedText] = ncursesColourPair(COLOR_RED, COLOR_WHITE);
+  white[ColourPairs.PasswordBox] = ncursesColourPair(COLOR_BLUE, COLOR_WHITE);  
+}
+
+void initCursesColors(in ref ncursesColourPair[ColourPairs] _pairs)
+{
+  foreach(key, value; _pairs)
+    {
+      init_pair(key.to!short, value.expand);
+    }
+}
 
 void writeStatusMessage(in string message)
 {

@@ -307,6 +307,7 @@ void showAbout()
   immutable int aboutWindowWidth = 70;
   string[] aboutText =  [
 			 "SPAMINEX, by Dennis Katsonis, 2018",
+			 "Version : "~_version,
 			 "",
 			 "Spaminex is an interactive tool to allow you to easily scan your",
 			 "e-mail Inbox and delete any messages you don't want.  In addition",
@@ -374,29 +375,49 @@ void showLicence()
 
 void initCurses()
 {
+  ncursesColourPair[ColourPairs] colourSetting = neon;
+  string colourScheme;
+  bool invalidColourSetting = false;
   Config m_config;
   if (configExists("spaminex")) {
     m_config = getConfig("spaminex");
+    if (m_config.hasSetting("colourscheme")) {
+      colourScheme = m_config.getSetting("colourscheme");
+      switch(colourScheme.toLower) {
+      case "neon":
+	colourSetting = neon;
+	break;
+      case "white":
+	colourSetting = white;
+	break;
+      case "blue":
+	colourSetting = blue;
+	break;
+	/* We warn the user if the value didn't match an existing one.
+	 * Default to neon, but its nice to let them know, in case
+	 * they are wondering why their mistyped option isn't working.
+	 * But don't throw now, throw at the end, after ncurses is up and running.
+	 */
+      default:
+	colourSetting = neon;
+	invalidColourSetting = true;	
+	break;
+      }
+    }
   }
+
 
   initscr;
   start_color;
-  init_pair(ColourPairs.MainTitleText, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(ColourPairs.MainBorder, COLOR_CYAN, COLOR_BLACK);
-  init_pair(ColourPairs.StatusBar, COLOR_WHITE, COLOR_RED);
-  init_pair(ColourPairs.MenuFore, COLOR_YELLOW, COLOR_BLUE);
-  init_pair(ColourPairs.MenuBack, COLOR_GREEN, COLOR_BLACK);
-  init_pair(ColourPairs.AccountMenuFore, COLOR_WHITE, COLOR_RED);
-  init_pair(ColourPairs.AccountMenuBack, COLOR_WHITE, COLOR_BLACK);
-  init_pair(ColourPairs.StandardText, COLOR_WHITE, COLOR_BLACK);
-  init_pair(ColourPairs.GreenText, COLOR_GREEN, COLOR_BLACK);
-  init_pair(ColourPairs.RedText, COLOR_RED, COLOR_BLACK);
-  init_pair(ColourPairs.PasswordBox, COLOR_YELLOW, COLOR_BLUE);
-  
+  initCursesColors(colourSetting);
+
   cbreak;
   noecho;
   keypad(stdscr,true);
   refresh;
+  if (invalidColourSetting) {
+    throw  new SpaminexException("Invalid colour setting","Colourscheme "~colourScheme~" isn't a valid option.  Check spelling and try again.  Refer to the README.md for valid options.\n\nWill continue with default colour scheme.");
+  }
 }
 
 

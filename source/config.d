@@ -1,4 +1,7 @@
 // Written in the D Programming language.
+/**
+ * Authors: Dennis Katsonis
+ */
 /*
  * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
@@ -18,12 +21,15 @@
  *
  */
 
-/* A simple class to load a basic configuration file consisting of
-   key = value lines with a [header].  The [header] entry indicates the beginning
-   of a set of configuration values which relate to a single account.  [heading]
-   forms the account title.
-
-   Spaminex refers to the account as a 'mailbox'.
+/*** A simple class to load a basic configuration file consisting of
+ *  key = value lines with a [header].  The [header] entry indicates the beginning
+ *  of a set of configuration values which relate to a single account.  [heading]
+ *  forms the account title.
+ *
+ * Each Configuraiton object forms a configuration 'set'.
+ *
+ *  Spaminex refers to the account as a 'mailbox'.
+ *
 */
 
 import core.stdc.stdlib : getenv;
@@ -68,6 +74,15 @@ static this()
   file.close;
 }
 
+/***********
+ * getConfig returns a Configuration set matching the string configtitle.
+ * The Config object will contain name/value pairs containing the 
+ * configuration options for that object.
+ * 
+ * Typically, each object will be a mailbox.  Object 'spaminex' is reserved
+ * for global spaminex program options.
+ */
+
 Config getConfig(in string configTitle) @safe
 {
   if (configExists(configTitle)) {
@@ -77,6 +92,7 @@ Config getConfig(in string configTitle) @safe
   }
 }
 
+/// Returns 'true' if a Configuration set
 bool configExists(in string configTitle) @safe nothrow
 {
   if(configTitle in configurations) {
@@ -86,6 +102,10 @@ bool configExists(in string configTitle) @safe nothrow
   }
 }
 
+/*******
+ * Writes all loaded Configurations to the default
+ * configuraiton file.
+ */
 size_t writeConf() @safe
 {
   // Returns the number of configuration objects written.
@@ -146,24 +166,13 @@ size_t readConf(ref File file)
   return configurations.length;
 }
 
-/*
-  Old function, may not need this, but keeping it in case.
 
-  void processLine(in char[] item) @safe
-  {
-  const auto values = item.split();
-  if (values.length != 3)
-  return;
-  if (values[1] != separator)
-  return;
-  if (currentConfig is null) {
-  throw new SpaminexException("Invalid configuration option",item.to!string);
-  }
-  
-  currentConfig.modify(values[0].to!string.toLower, values[2].to!string);
-  }
-*/
-
+/*******
+ * This reads a line of text, and add the option to 
+ * 'currentConfig'.  This function is used internally by config.d
+ * for setting up all the configuraiton objects.
+ *
+ */
 void processLine(in char[] item)
 {
   string key;
@@ -181,6 +190,13 @@ void processLine(in char[] item)
   }
   currentConfig.modify(key.toLower, value);
 }
+/****
+ * Class containing configuration objects.
+ *
+ * Configuration values and options are stored as 'strings'.  The configuration
+ * option title forms the key.
+ */
+
 
 class Config
 {
@@ -189,6 +205,7 @@ private:
   string m_configTitle;
 
 public:
+  /// The configuraiton object title.
   final @property string title() const @safe nothrow pure
   {
     return m_configTitle;
@@ -199,15 +216,19 @@ public:
     m_configTitle = title.to!string;
   }
 
+  /// Return true if the configuration object has no configuraiton values in it.
   final bool empty() @safe pure nothrow
   {
     return (m_configOption.length == 0);
   }
+
+  /******
+   * Modify configuration option "key" to have value "value".
+   * If value is "", then delete.
+   * A key can be deleted by setting the value to an empty string. */
   
   final void modify(string key, string value = "") @safe nothrow
   {
-    /* If value is "", then delete.
-       A key can be deleted by not specifiying a value. */
     
     if (value.length == 0) {
       if (key in m_configOption) {
@@ -219,6 +240,10 @@ public:
       m_configOption[key] = value;
     }
   }
+
+  /****
+   * Returns 'true' if configuration option 'key' is present.
+   */
   final bool hasSetting(in string key) const @safe nothrow pure
   {
     const string *p = (key in m_configOption);
@@ -229,6 +254,12 @@ public:
     }
   }
 
+  /****
+   * Returns the value of configuraiton option 'key'.
+   * 
+   * Throws an exception if 'key' does not exist.
+   */
+  
   final string getSetting(in string key) const @safe
   {
     if(hasSetting(key)) {

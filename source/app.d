@@ -58,21 +58,48 @@ int main()
       endwin;
     }
   }
-
-  initCurses;
+  try {
+    initCurses;
+  } catch (SpaminexException e) {
+    auto except = new ExceptionHandler(e);
+    except.display;
+  }
+ 
   cursesInitialised = true;
   curs_set(0);
 
   /* Spaminex is not going to be very useful with a mini terminal.
      Better to quit, than let the user deal with stuck windows.
      Who is going to use a terminal that small, at least for this app?
+
+     BUT, lets give someone the option, if they do want to.
   */
-  if (LINES < 24 || COLS < 80) {
-    endwin;
-    writeln("Spaminex requires a terminal of at least 80x24 characters");
+  bool checkTerminalSize() {
+    Config m_config;
+    bool allowSmallTerm = false;
+    if (configExists("spaminex")) {
+      m_config = getConfig("spaminex");
+      if (m_config.hasSetting("allowsmallterm")) {
+	auto option = m_config.getSetting("allowsmallterm");
+	if (option.toLower == "true") {
+	  allowSmallTerm = true;
+	}
+      }
+    }
+    if (allowSmallTerm != true) {    
+      if (LINES < 24 || COLS < 80) {
+	endwin;
+	writeln("Spaminex requires a terminal of at least 80x24 characters");
+	return false;
+      }
+    }
+    return true;
+  }
+  
+  if (checkTerminalSize == false) {
     return 1;
   }
-
+  
   mainWindow;
   createStatusWindow;
   string account;
