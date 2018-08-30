@@ -38,7 +38,7 @@ WINDOW *headerWindow = null;
 WINDOW *inspectorWindow = null;
 WINDOW *passwordWindow = null;
 
-enum ColourPairs : chtype {
+enum ColourPairs : short {
   MainBorder = 1,
     MainTitleText,
     StatusBar,

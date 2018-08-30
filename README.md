@@ -27,55 +27,48 @@ Pressing Q will Quit, and delete all selected messages and bounce those marked f
 
 Configuration Options
 ---
-Configuration is in configuration group, with each group pertaining to a specific e-mail account you have.  The account name is specified on its own line between square brackets "[ & ]".  After this, list your options in the format.  Options specific for the Spaminex program are listed under a section called [spaminex].  Obviously, you cannot call your own e-mail account configuration 'spaminex'.
+Configuration is in configuration group, with each group pertaining to a specific e-mail account you have.  The account name is specified on its own line inbetween square brackets "[ & ]".  After this, list your options.  Options specific for the Spaminex program are listed under a section called [spaminex].  Obviously, you cannot call your own e-mail account configuration 'spaminex'.
+
+Each option is on a separate line and follows the following format.
 
 option = value.
 
 Valid options for mail accounts are
 
-username
-	The username used to log into the mail server.
+* **username:** The username used to log into the mail server.
 	
-password
-	The password used to log into the mail server.  Note that this is stored in plain text, so the configuration file should be kept secure.  If no password is supplied, Spaminex will prompt for one.  (optional).
+* **password:** The password used to log into the mail server.  Note that this is stored in plain text, so the configuration file should be kept secure.  If no password is supplied, Spaminex will prompt for one.  (optional).
 
-pop
-	The incoming pop server if using a POP account.
+* **pop:** The incoming pop server if using a POP account.
 	
-imap
-	The incoming imap server of using an IMAP account.
+* **imap:** The incoming imap server of using an IMAP account.
 	
-smtp
-	The outgoing SMTP server (optional).
+* **smtp:** The outgoing SMTP server (optional).
 
-port
-	The port number of the incoming server.  Typically 110 for POP and 143 for IMAP, 993 for POP using SSL.
+* **port:** The port number of the incoming server.  Typically 110 for POP and 143 for IMAP, 993 for POP using SSL.
 	
-type
-	imap or pop
+* **type:** imap or pop
 	
-smtp_port
-	The port number of the SMTP server (optional).
+* **smtp_port:** The port number of the SMTP server (optional).
 	
 An example is below...
 
-[hotmail]
-smtp_port = 25
-port = 993
-type = imap
-password = ThePassword
-pop = pop.outlook.com
-imap = imap-mail.outlook.com
-username = JohnDoe@hotmail.com
+
+[hotmail]  
+smtp_port = 25  
+port = 993  
+type = imap  
+password = ThePassword  
+pop = pop.outlook.com  
+imap = imap-mail.outlook.com  
+username = JohnDoe@hotmail.com  
 
 
 Valid options for spaminex are
 
-colourscheme
-	The colour scheme to use.  Options are "neon", "blue" and "white".
+* **colourscheme:** The colour scheme to use.  Options are "neon", "blue" and "white".  Default is "neon" which is light colours against a black background.
 
-allowsmallterm
-	By default, spaminex will report an error if the terminal is less than 80x25.
+* **allowsmallterm:** By default, spaminex will report an error if the terminal is less than 80x25.
 	But if you wish to use spaminex on smaller terminals, with difficulty, set this to
 	"true".  Any other setting will be regared as "false".
 
