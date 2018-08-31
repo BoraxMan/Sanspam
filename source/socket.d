@@ -122,6 +122,9 @@ public:
     bool status;
     debug { import std.stdio; writeln("SENDING :", message);}
     try {
+      if (m_socket.isAlive == false) {
+	throw new SanspamException("Connection Error","The connection is not longer active.");
+      }
       if (m_ssl !is null || _secure == true) {
 	status = SSL_write(_ssl,message.ptr, message.length.to!int) >= 0;
       } else {
@@ -145,6 +148,9 @@ public:
     ptrdiff_t len;
 
     m_buffer.reset;
+    if (m_socket.isAlive == false) {
+      throw new SanspamException("Connection Error","The connection is not longer active.");
+    }
     debug { import std.stdio; writeln("Buffer size 1: ", m_buffer.length); }
 	
     do {
