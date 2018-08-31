@@ -26,7 +26,7 @@ import std.conv;
 import std.string;
 import std.typecons;
 
-string _version = "0.1.0";
+string _version = "0.1.1";
 const int SIGWINCH = 28;
 bool termResized = false;
 alias ncursesColourPair = Tuple!(short, "foreground", short, "background");
