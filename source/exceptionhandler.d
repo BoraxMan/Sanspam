@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,15 +24,15 @@ import deimos.ncurses;
 import deimos.ncurses.menu;
 import uidefs;
 
-import spaminexexception;
+import sanspamexception;
 
 class ExceptionHandler
 {
 private:
-  SpaminexException m_exception;
+  SanspamException m_exception;
 
 public:
-  this(SpaminexException e) @safe
+  this(SanspamException e) @safe
   {
     m_exception = e;
   }
@@ -40,7 +40,7 @@ public:
   void display()
   {
     WINDOW *exceptionDisplay;
-    exceptionDisplay = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"Spaminex has encountered a problem.");
+    exceptionDisplay = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"Sanspam has encountered a problem.");
     
     wattron(exceptionDisplay, COLOR_PAIR(ColourPairs.StandardText));
     wattron(exceptionDisplay, A_BOLD);

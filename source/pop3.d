@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import socket;
 import config;
 import message;
 import mailprotocol;
-import spaminexexception;
+import sanspamexception;
 import processline;
 import exceptionhandler;
 
@@ -67,7 +67,7 @@ public:
     }
     immutable auto b = m_socket.receive.bufferToString();
     if(evaluateMessage(b, No.multiline) == MessageStatus.BAD) {
-      throw new SpaminexException("Cannot create socket","Could not create connection with server.");
+      throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
   }
 
@@ -84,7 +84,7 @@ public:
     string UIDquery = "UIDL "~messageNumber.to!string;
     immutable auto UIDresponse = query(UIDquery);
     if (UIDresponse.status == MessageStatus.BAD) {
-      throw new SpaminexException("POP3 transfer failure", "Failed to execute query "~UIDquery);
+      throw new SanspamException("POP3 transfer failure", "Failed to execute query "~UIDquery);
     } else {
       immutable auto results = UIDresponse.contents.split;
       return results[1];
@@ -207,7 +207,7 @@ public:
 	string messageQuery = "TOP "~x.to!string~" 0";
 	immutable auto response = query(messageQuery, Yes.multiline);
 	if (response.status == MessageStatus.BAD) {
-	  throw new SpaminexException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
+	  throw new SanspamException("Failed to download e-mail message", "Message number "~x.to!string~" could not be downloaded.");
 	}
 	m = pmd.messageFactory(response.contents);
 	

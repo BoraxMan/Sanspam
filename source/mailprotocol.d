@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import processline;
 import config;
 import message;
 import socket;
-import spaminexexception;
+import sanspamexception;
 import processline;
 
 struct Encrypted {} // May get implemented later.
@@ -186,7 +186,7 @@ public:
     string messageQuery = getQueryFormat(Command.Close);
     auto response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException(response.contents,response.contents);
+      throw new SanspamException(response.contents,response.contents);
     }
     
     // Now, logout...
@@ -240,7 +240,7 @@ public:
     if (m_supportUID) {
       immutable bool result = checkUID(uidl, targetMessage.number);
       if (!result) {
-	throw new SpaminexException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(targetMessage.number)~" instead.");
+	throw new SanspamException("Message mismatch", "Was trying to delete message with UID "~uidl~" but got "~getUID(targetMessage.number)~" instead.");
       }
       // If we got this far, we don't have a UID to check against, or the check passed.  So delete the message.
 
@@ -249,7 +249,7 @@ public:
 	string trashMessageQuery = insertValue(getQueryFormat(Command.Copy),targetMessage.number, trashFolder);
 	auto trashResponse = query(trashMessageQuery);
 	if (trashResponse.status == MessageStatus.BAD) {
-	  throw new SpaminexException("Could not move message to Trash", "Error moving message to "~trashFolder~".  Options are to check the correct Trash folder is specified, or delete the message without moving to Trash.");
+	  throw new SanspamException("Could not move message to Trash", "Error moving message to "~trashFolder~".  Options are to check the correct Trash folder is specified, or delete the message without moving to Trash.");
 	}
       }
 

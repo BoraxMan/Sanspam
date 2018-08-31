@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import std.socket;
 import std.string;
 import std.conv: to;
 import buffer;
-import spaminexexception;
+import sanspamexception;
 
 import deimos.openssl.conf;
 import deimos.openssl.err;
@@ -104,7 +104,7 @@ public:
       m_socket.connect(addresses[0]);
       m_socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO,dur!"seconds"(socketTimeout));
     } catch (SocketException e) {
-      throw new SpaminexException(e.msg, "Cannot connect to address "~server~" at port "~(port.to!string));
+      throw new SanspamException(e.msg, "Cannot connect to address "~server~" at port "~(port.to!string));
     }
   }
 
@@ -128,7 +128,7 @@ public:
 	status = m_socket.send(message) == message.length;
       }
     } catch (SocketException e) {
-      throw new SpaminexException(e.msg, "Failure to send message.");
+      throw new SanspamException(e.msg, "Failure to send message.");
     }
     //import std.stdio; message.writeln;
     return status;
@@ -156,12 +156,12 @@ public:
 	}	
       }
       catch (SocketException e) {
-	throw new SpaminexException(e.msg, "Failure to receive message.");
+	throw new SanspamException(e.msg, "Failure to receive message.");
       }
       if (len == 0) {
-	throw new SpaminexException("Connection closed.","No data received");
+	throw new SanspamException("Connection closed.","No data received");
       } else if (len == Socket.ERROR) {
-	throw new SpaminexException("Failure receiving data.","Socket Error");
+	throw new SanspamException("Failure receiving data.","Socket Error");
       }
       m_buffer.write(buffer[0..len]);
 

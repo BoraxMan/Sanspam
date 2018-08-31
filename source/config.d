@@ -3,7 +3,7 @@
  * Authors: Dennis Katsonis
  */
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,12 +28,12 @@
  *
  * Each Configuraiton object forms a configuration 'set'.
  *
- *  Spaminex refers to the account as a 'mailbox'.
+ *  Sanspam refers to the account as a 'mailbox'.
  *
 */
 
 import core.stdc.stdlib : getenv;
-import spaminexexception;
+import sanspamexception;
 import std.string;
 import std.file;
 import std.format;
@@ -54,12 +54,12 @@ static this()
   File file;
 
   path = getenv("HOME").to!string;
-  path~="/.config/spaminex/";
+  path~="/.config/sanspam/";
   if(!exists(path)) {
     try {
     mkdirRecurse(path);
     } catch (FileException e) {
-      throw new SpaminexException("Could not make configuration directory",e.msg);
+      throw new SanspamException("Could not make configuration directory",e.msg);
     }
   }
   if(exists(path~filename)) {
@@ -68,7 +68,7 @@ static this()
     readConf(file);
     } catch (FileException e) {
       file.close;
-      throw new SpaminexException("Could not read configuration file.","File "~filename~" : "~e.msg);
+      throw new SanspamException("Could not read configuration file.","File "~filename~" : "~e.msg);
     }
   }
   file.close;
@@ -79,8 +79,8 @@ static this()
  * The Config object will contain name/value pairs containing the 
  * configuration options for that object.
  * 
- * Typically, each object will be a mailbox.  Object 'spaminex' is reserved
- * for global spaminex program options.
+ * Typically, each object will be a mailbox.  Object 'sanspam' is reserved
+ * for global sanspam program options.
  */
 
 Config getConfig(in string configTitle) @safe
@@ -88,7 +88,7 @@ Config getConfig(in string configTitle) @safe
   if (configExists(configTitle)) {
     return configurations[configTitle];
   } else {
-    throw new SpaminexException("Invalid configuration set", "Configuration set "~configTitle~" does not exist.");
+    throw new SanspamException("Invalid configuration set", "Configuration set "~configTitle~" does not exist.");
   }
 }
 
@@ -117,7 +117,7 @@ size_t writeConf() @safe
   try {
     file.open(path~tempFile,"w");
   } catch (FileException e) {
-    throw new SpaminexException("Open file error", tempFile~" "~e.msg);
+    throw new SanspamException("Open file error", tempFile~" "~e.msg);
   }
 
   try {
@@ -130,7 +130,7 @@ size_t writeConf() @safe
     }
     file.close;
   } catch (FileException e) {
-    throw new SpaminexException("Write error", tempFile~" "~e.msg);
+    throw new SanspamException("Write error", tempFile~" "~e.msg);
   } 
   remove(path~filename);
   rename(path~tempFile, path~filename);
@@ -186,7 +186,7 @@ void processLine(in char[] item)
     return;
   }
   if (currentConfig is null) {
-    throw new SpaminexException("Configuration line doesn't belong to an account.",item.to!string);
+    throw new SanspamException("Configuration line doesn't belong to an account.",item.to!string);
   }
   currentConfig.modify(key.toLower, value);
 }
@@ -265,7 +265,7 @@ public:
     if(hasSetting(key)) {
       return m_configOption[key];
     } else {
-      throw new SpaminexException("Setting doesn't exist", "Missing setting is \""~key~"\"");
+      throw new SanspamException("Setting doesn't exist", "Missing setting is \""~key~"\"");
     }
   }
  

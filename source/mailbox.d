@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import std.string;
 import std.format;
 import std.net.isemail;
 import std.algorithm;
-import spaminexexception;
+import sanspamexception;
 import processline;
 import message;
 public import pop3;
@@ -110,7 +110,7 @@ public:
 
     auto emailStatus = isEmail(recipient);
     if (!emailStatus.valid) {
-      throw new SpaminexException("Failed to bounce message","Email invalid.");
+      throw new SanspamException("Failed to bounce message","Email invalid.");
       //      return false;
     }
     
@@ -120,16 +120,16 @@ public:
 	string uname = m_config.getSetting("username");
 	domain = getDomainFromEmailAddress(uname);
 	if (domain == "") {
- 	  throw new SpaminexException("Failed to bounce message","Email domain not specified.  Add \"domain = insert.domain.here'\" option to Spaminex configuration file.");
+ 	  throw new SanspamException("Failed to bounce message","Email domain not specified.  Add \"domain = insert.domain.here'\" option to Sanspam configuration file.");
 	}
       }
 
     if(!m_config.hasSetting("smtp")) {
-      throw new SpaminexException("Failed to bounce message","SMTP server not specified.  Add \"smtp = smtp.server'\" option to Spaminex configuration file.");
+      throw new SanspamException("Failed to bounce message","SMTP server not specified.  Add \"smtp = smtp.server'\" option to Sanspam configuration file.");
     }
 
     if(!m_config.hasSetting("smtp_port")) {
-      throw new SpaminexException("Failed to bounce message","SMTP port not specified.  Add \"smtp_port = port'\" option to Spaminex configuration file.");
+      throw new SanspamException("Failed to bounce message","SMTP port not specified.  Add \"smtp_port = port'\" option to Sanspam configuration file.");
     }
 
     smtp_server = m_config.getSetting("smtp");
@@ -168,7 +168,7 @@ public:
       m_protocol = Protocol.IMAP;
     } else {
       m_protocol = Protocol.Unknown;
-      throw new SpaminexException("Account type not specified","Configuration needs to include 'type = xxx' where xxx is pop or imap");
+      throw new SanspamException("Account type not specified","Configuration needs to include 'type = xxx' where xxx is pop or imap");
     }
   }
 

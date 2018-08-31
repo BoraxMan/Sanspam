@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import std.string;
 import std.format;
 import config;
 import exceptionhandler;
-import spaminexexception;
+import sanspamexception;
 import mailbox;
 import ui;
 import uidefs;
@@ -60,7 +60,7 @@ int main()
   }
   try {
     initCurses;
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
   }
@@ -68,7 +68,7 @@ int main()
   cursesInitialised = true;
   curs_set(0);
 
-  /* Spaminex is not going to be very useful with a mini terminal.
+  /* Sanspam is not going to be very useful with a mini terminal.
      Better to quit, than let the user deal with stuck windows.
      Who is going to use a terminal that small, at least for this app?
 
@@ -77,8 +77,8 @@ int main()
   bool checkTerminalSize() {
     Config m_config;
     bool allowSmallTerm = false;
-    if (configExists("spaminex")) {
-      m_config = getConfig("spaminex");
+    if (configExists("sanspam")) {
+      m_config = getConfig("sanspam");
       if (m_config.hasSetting("allowsmallterm")) {
 	auto option = m_config.getSetting("allowsmallterm");
 	if (option.toLower == "true") {
@@ -89,7 +89,7 @@ int main()
     if (allowSmallTerm != true) {    
       if (LINES < 24 || COLS < 80) {
 	endwin;
-	writeln("Spaminex requires a terminal of at least 80x24 characters");
+	writeln("Sanspam requires a terminal of at least 80x24 characters");
 	return false;
       }
     }

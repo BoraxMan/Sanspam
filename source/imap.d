@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import socket;
 import mailprotocol;
 import message;
 import processline;
-import spaminexexception;
+import sanspamexception;
 import exceptionhandler;
 
 string seen = "\\Seen";
@@ -41,7 +41,7 @@ string answered = "\\Answered";
 string deleted = "\\Deleted";
 string recent = "\\Recent";
 
-immutable string prefix = "Spaminex";
+immutable string prefix = "Sanspam";
 
 struct commandPrefix
 {
@@ -109,13 +109,13 @@ public:
     m_socket = new MailSocket(server, port);
     if (port == 993) {
       if(m_socket.startSSL == false) {
-	throw new SpaminexException("Failed to create SSL socket", "SSL Socket failure.");
+	throw new SanspamException("Failed to create SSL socket", "SSL Socket failure.");
       }
     }
 
     immutable string b = m_socket.receive.bufferToString();
     if(!evaluateMessage(b,".")) {
-      throw new SpaminexException("Cannot create socket","Could not create connection with server.");
+      throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
   }
 
@@ -123,7 +123,7 @@ public:
   {
     auto x = query("LOGIN "~username~" "~password,No.multiline);
     if (x.status == MessageStatus.BAD || x.status == MessageStatus.INCOMPLETE) {
-      throw new SpaminexException("Failed to connect", x.contents~" : Incorrect username or password");
+      throw new SanspamException("Failed to connect", x.contents~" : Incorrect username or password");
     }
 
     getCapabilities();
@@ -145,7 +145,7 @@ public:
     m_capabilities = parse_capability_list(serverResponse.contents.toUpper);
     if (serverResponse.status == MessageStatus.BAD) {
       m_supportUID = false;
-      throw new SpaminexException("Failed to get IMAP Capabilities.", "Capabilities command failed for IMAP.  Using default capabilities.");
+      throw new SanspamException("Failed to get IMAP Capabilities.", "Capabilities command failed for IMAP.  Using default capabilities.");
     }
     if (find(m_capabilities, "UID").length) m_supportUID = true;
     if (find(m_capabilities, "UIDPLUS").length) m_supportUID = true;
@@ -215,7 +215,7 @@ public:
     response = query(messageQuery, Yes.multiline);
     
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("Read Error","Failed to download e-mails.");
+      throw new SanspamException("Read Error","Failed to download e-mails.");
     }
 
     auto splitEmails = splitter(response.contents,regex(r"^\* [0-9]+ FETCH.*","m"));
@@ -226,7 +226,7 @@ public:
       response = query(messageQuery, Yes.multiline);
       
       if (response.status == MessageStatus.BAD) {
-	throw new SpaminexException("Read Error","Failed to download UIDs.");
+	throw new SanspamException("Read Error","Failed to download UIDs.");
       }
     }
 
@@ -274,7 +274,7 @@ public:
     response = query("SELECT "~currentFolder.name);
 
     if(response.status == MessageStatus.BAD) {
-      throw new SpaminexException("Cannot create socket","Could not create connection with server.");
+      throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
 
     // Parse folder flags or the quantity of messages in the folder.
@@ -319,7 +319,7 @@ public:
     string UIDquery = "FETCH "~messageNumber.to!string~" UID";
     immutable auto UIDresponse = query(UIDquery, No.multiline);
     if (UIDresponse.status == MessageStatus.BAD) {
-      throw new SpaminexException("IMAP transfer failure", "Failed to execute query "~UIDquery);
+      throw new SanspamException("IMAP transfer failure", "Failed to execute query "~UIDquery);
     } else {
       immutable auto results = parseUID(UIDresponse.contents);
       return results;
@@ -332,14 +332,14 @@ public:
     // First expunge
     auto response = query("EXPUNGE");
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("Failed delete messages on server.","E-mails marked for deletion may not be deleted.");
+      throw new SanspamException("Failed delete messages on server.","E-mails marked for deletion may not be deleted.");
     }
 
     
     auto messageQuery = getQueryFormat(Command.Close);
     response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
+      throw new SanspamException("Failed close connection with server.","E-mails marked for deletion may not be deleted.");
     }
 
     
@@ -354,8 +354,8 @@ unittest
 {
   MailProtocol d = new IMAP;
   commandPrefix p;
-  assert(p() == "Spaminex1 ");
-  assert(p() == "Spaminex2 ");
+  assert(p() == "Sanspam1 ");
+  assert(p() == "Sanspam2 ");
   assert(insertValue(d.getQueryFormat(Command.Copy),4,"TEST") == "COPY 4 TEST");
   assert(insertValue(d.getQueryFormat(Command.Delete),4) == "STORE 4 +FLAGS (\\Deleted)");
   assert(d.getQueryFormat(Command.Logout) == "LOGOUT");

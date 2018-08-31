@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import buffer;
 import config;
 import message;
 import mailprotocol;
-import spaminexexception;
+import sanspamexception;
 import processline;
 import exceptionhandler;
 
@@ -44,7 +44,7 @@ private:
     } else if(message[0] == '5') {
       return false;
     } else {
-      throw new SpaminexException("Malformed server response","Could not determine message success.");
+      throw new SanspamException("Malformed server response","Could not determine message success.");
     }
   }
   
@@ -57,7 +57,7 @@ public:
     m_socket = new MailSocket(server, port);
     immutable auto b = m_socket.receive.bufferToString;
     if(!evaluateMessage(b)) {
-      throw new SpaminexException("Cannot create socket","Could not create connection with server.");
+      throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
   }
 
@@ -144,25 +144,25 @@ public:
     auto messageQuery = "MAIL FROM: <MAILER-DAEMON@"~domain~">";
     auto response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("SMTP Message","Failed to send SMTP message 1");
+      throw new SanspamException("SMTP Message","Failed to send SMTP message 1");
     }
 
     messageQuery = "RCPT TO:"~recipient;
     response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("SMTP Message","Failed to send SMTP message 2");
+      throw new SanspamException("SMTP Message","Failed to send SMTP message 2");
     }
 
     messageQuery = "DATA";
     response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("SMTP Message","Failed to send SMTP message 3");
+      throw new SanspamException("SMTP Message","Failed to send SMTP message 3");
     }
 
     messageQuery = message;
     response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SpaminexException("SMTP Message","Failed to send SMTP message 5");
+      throw new SanspamException("SMTP Message","Failed to send SMTP message 5");
     }
     close;
   }

@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  */
 
 
-// This has code specific to the Spaminex UI.
+// This has code specific to the Sanspam UI.
 import core.memory;
 import core.stdc.errno;
 import core.sys.posix.sys.ioctl;
@@ -36,7 +36,7 @@ import messageinspector;
 import message;
 import config;
 import exceptionhandler;
-import spaminexexception;
+import sanspamexception;
 import mailbox;
 import mailprotocol;
 import uidefs;
@@ -129,7 +129,7 @@ void editAccount(in string account, in string folder = "")
     touchwin(accountEditWindow);
     redrawwin(accountEditWindow);
     
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
     return;
@@ -146,7 +146,7 @@ try {
 	  }
 	}
     }
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
     return;
@@ -154,7 +154,7 @@ try {
       
   try {
     mailbox.loadMessages;
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
   }
@@ -172,7 +172,7 @@ try {
 	  } else {
 	    error = "Unknown error";
 	  }
-	  throw new SpaminexException("Failed creating menu entry for "~m.subject.replace(":","I"),error);
+	  throw new SanspamException("Failed creating menu entry for "~m.subject.replace(":","I"),error);
 	}
 	set_item_userptr(currentItem, &m);
 	messageItems~= currentItem;
@@ -182,7 +182,7 @@ try {
   
     messageMenu = new_menu(messageItems.ptr);
     if (messageMenu == null) {
-      throw new SpaminexException("Internal Error","Could not create menu of messages for account "~account);
+      throw new SanspamException("Internal Error","Could not create menu of messages for account "~account);
     }
 
     set_menu_win(messageMenu, accountEditWindow);
@@ -211,7 +211,7 @@ try {
     wprintw(accountEditWindow,footer.toStringz);
     wrefresh(accountEditWindow);
     mailboxViewHelp;
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
   }
@@ -286,7 +286,7 @@ try {
 	}
       }
   
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
   } finally {
@@ -298,7 +298,7 @@ try {
 
 void mainWindow()
 {
-  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SPAMINEX ==--", Yes.hasBox);
+  headerWindow = create_newwin(LINES-1,COLS,0,0,ColourPairs.MainBorder, ColourPairs.MainTitleText,"--== SANSPAM ==--", Yes.hasBox);
 }
 
 void showAbout()
@@ -306,20 +306,20 @@ void showAbout()
   WINDOW *aboutWindow = null;
   immutable int aboutWindowWidth = 70;
   string[] aboutText =  [
-			 "SPAMINEX, by Dennis Katsonis, 2018",
+			 "SANSPAM, by Dennis Katsonis, 2018",
 			 "Version : "~_version,
 			 "",
-			 "Spaminex is an interactive tool to allow you to easily scan your",
+			 "Sanspam is an interactive tool to allow you to easily scan your",
 			 "e-mail Inbox and delete any messages you don't want.  In addition",
 			 "to this, you can bounce back an error message to the sender, which",
 			 "may dissuade spammers from reusing your e-mail address.",
-			 "Spaminex is inspired by Save My Modem by Enrico Tasso",
+			 "Sanspam is inspired by Save My Modem by Enrico Tasso",
 			 "and SpamX by Emmanual Vasilakis, which are two simple, easy",
 			 "to set up tools that I used to use, but aren't maintained anymore.",
-			 "Refer to the README file for help on how to configure Spaminex.",
+			 "Refer to the README file for help on how to configure Sanspam.",
 			 "",
 			 "This program is intended for simple, basic e-mail pruning."];
-  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Spaminex", Yes.hasBox);
+  aboutWindow = create_newwin(aboutText.length.to!int+2,aboutWindowWidth,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"About Sanspam", Yes.hasBox);
   wattron(aboutWindow, COLOR_PAIR(ColourPairs.StandardText));
 
   int line = 1;
@@ -379,8 +379,8 @@ void initCurses()
   string colourScheme;
   bool invalidColourSetting = false;
   Config m_config;
-  if (configExists("spaminex")) {
-    m_config = getConfig("spaminex");
+  if (configExists("sanspam")) {
+    m_config = getConfig("sanspam");
     if (m_config.hasSetting("colourscheme")) {
       colourScheme = m_config.getSetting("colourscheme");
       switch(colourScheme.toLower) {
@@ -416,7 +416,7 @@ void initCurses()
   keypad(stdscr,true);
   refresh;
   if (invalidColourSetting) {
-    throw  new SpaminexException("Invalid colour setting","Colourscheme "~colourScheme~" isn't a valid option.  Check spelling and try again.  Refer to the README.md for valid options.\n\nWill continue with default colour scheme.");
+    throw  new SanspamException("Invalid colour setting","Colourscheme "~colourScheme~" isn't a valid option.  Check spelling and try again.  Refer to the README.md for valid options.\n\nWill continue with default colour scheme.");
   }
 }
 
@@ -455,12 +455,12 @@ string accountSelectMenu()
   try {
     auto configurationRange = configurations.byKey();
     foreach(conf; configurationRange) {
-      if(conf == "spaminex") {
+      if(conf == "sanspam") {
 	continue;
       }
       currentItem = new_item(conf.to!string.toStringz,"".toStringz);
       if (currentItem == null) {
-	throw new SpaminexException("Could not create menu entry","Failed creating menu entry for "~conf.to!string);
+	throw new SanspamException("Could not create menu entry","Failed creating menu entry for "~conf.to!string);
 
       }
       mailboxes~=currentItem;
@@ -469,7 +469,7 @@ string accountSelectMenu()
     mailboxes~=null;
     mailboxMenu = new_menu(mailboxes.ptr);
     if (mailboxMenu == null) {
-      throw new SpaminexException("Internal Error","Could not allocate menu.");
+      throw new SanspamException("Internal Error","Could not allocate menu.");
     }
   
     set_menu_win(mailboxMenu, accountSelectionWindow);
@@ -526,7 +526,7 @@ string accountSelectMenu()
 	termResize;
       }
   
-  } catch (SpaminexException e) {
+  } catch (SanspamException e) {
     auto except = new ExceptionHandler(e);
     except.display;
   }

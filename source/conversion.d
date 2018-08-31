@@ -1,6 +1,6 @@
 // Written in the D Programming language.
 /*
- * Spaminex: Mailbox utility to delete/bounce spam on server interactively.
+ * Sanspam: Mailbox utility to delete/bounce spam on server interactively.
  * Copyright (C) 2018  Dennis Katsonis dennisk@netspace.net.au
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import std.algorithm;
 import std.string;
 import std.base64;
 import std.encoding;
-import spaminexexception;
+import sanspamexception;
 
 immutable string utfSeqStart = "=?";
 immutable string utfSeqEnd = "?=";
@@ -150,7 +150,7 @@ string decodeUTF8(T)(string text)
 
     if (text[index] == '=') {
       if ((index + 3) > text.length) {
-	throw new SpaminexException("Message format error","Incomplete code");
+	throw new SanspamException("Message format error","Incomplete code");
       }
       static if(is(T == string)) {
 	immutable string hchars = text[index+1..index+3];
