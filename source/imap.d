@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-debug { import std.stdio; }
+
 import std.algorithm;
 import std.conv;
 import std.typecons;
@@ -298,7 +298,6 @@ public:
     
     Buffer buffer = m_socket.receive;
     response.contents = buffer.text;
-    debug { import std.stdio; writeln(" MESSAGE : ", response.contents);}
 
     // Evaluate response.
     MessageStatus isOK = evaluateMessage(response.contents, prefix.currentPrefix);
@@ -306,7 +305,6 @@ public:
     while (isOK == MessageStatus.INCOMPLETE) {
       buffer.reset;
       buffer = m_socket.receive;
-      debug { import std.stdio; writeln(" ADDIOTIONAL BUFFER : ", buffer.text);}
       response.contents ~= buffer.text;
       isOK = evaluateMessage(response.contents, prefix.currentPrefix);
     }
