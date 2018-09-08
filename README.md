@@ -72,6 +72,8 @@ Valid options for sanspam are
 	But if you wish to use sanspam on smaller terminals, with difficulty, set this to
 	"true".  Any other setting will be regared as "false".
 
+* **messagedelay:** The duration for messages to appear at the status bar at the bottom, in milliseconds.  The default is 1000 milliseconds (1 second);
+
 Development
 ---
 This is partly written for personal use, and partly as a small project to begin learning the D Programming Language.  It is my first proper D program, though still somewhat written in an idiomatic C++ style instead of an idiomatic D style.

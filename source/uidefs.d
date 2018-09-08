@@ -26,10 +26,11 @@ import std.conv;
 import std.string;
 import std.typecons;
 
-string _version = "0.1.3";
-const int SIGWINCH = 28;
-bool termResized = false;
-alias ncursesColourPair = Tuple!(short, "foreground", short, "background");
+__gshared string _version = "0.1.3";
+__gshared const int SIGWINCH = 28;
+__gshared int messageWaitDuration = 1000;
+__gshared bool termResized = false;
+__gshared alias ncursesColourPair = Tuple!(short, "foreground", short, "background");
 
 WINDOW *accountSelectionWindow = null;
 WINDOW *accountEditWindow = null;

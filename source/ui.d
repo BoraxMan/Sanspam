@@ -22,6 +22,7 @@
 // This has code specific to the Sanspam UI.
 import core.memory;
 import core.stdc.errno;
+import core.thread;
 import core.sys.posix.sys.ioctl;
 import core.stdc.signal;
 import std.stdio;
@@ -224,9 +225,14 @@ try {
 	case 'i':
 	  goto case;
 	case 'I':
-	  messageInspector((cast(Message*)item_userptr(current_item(messageMenu))));
-	  touchwin(accountEditWindow);
-	  redrawwin(accountEditWindow);
+	  if((cast(Message*)item_userptr(current_item(messageMenu)))  == null) {
+	    writeStatusMessage("No item selected.");
+	    Thread.sleep(dur!("msecs")(messageWaitDuration));
+	  } else {
+	    messageInspector((cast(Message*)item_userptr(current_item(messageMenu))));
+	    touchwin(accountEditWindow);
+	    redrawwin(accountEditWindow);
+	  }
 	  mailboxViewHelp;
 	  break;
 	case 'c':
@@ -248,13 +254,25 @@ try {
 	case 'b':
 	  goto case;
 	case 'B':
-	  (cast(Message*)item_userptr(current_item(messageMenu))).bounce = true;
+	  if((cast(Message*)item_userptr(current_item(messageMenu)))  == null) {
+	    writeStatusMessage("No item selected.");
+	    Thread.sleep(dur!("msecs")(messageWaitDuration));
+	    mailboxViewHelp;
+	  } else {
+	    (cast(Message*)item_userptr(current_item(messageMenu))).bounce = true;
+	  }
 	  goto case;
 	case 'd':
 	  goto case;
 	case 'D':
-	  (cast(Message*)item_userptr(current_item(messageMenu))).deleted = true;
-	  menu_driver(messageMenu, REQ_TOGGLE_ITEM);
+	  if((cast(Message*)item_userptr(current_item(messageMenu)))  == null) {
+	    writeStatusMessage("No item selected.");
+	    Thread.sleep(dur!("msecs")(messageWaitDuration));
+	    mailboxViewHelp;
+	  } else {
+	    (cast(Message*)item_userptr(current_item(messageMenu))).deleted = true;
+	    menu_driver(messageMenu, REQ_TOGGLE_ITEM);
+	  }
 	  break;
 	case KEY_RESIZE:
 	  return;
@@ -373,6 +391,18 @@ void showLicence()
 }
 
 
+
+void initMessageWaitDuration()
+{
+  Config m_config;
+  if (configExists("sanspam")) {
+    m_config = getConfig("sanspam");
+    if (m_config.hasSetting("messagedelay")) {
+      messageWaitDuration = m_config.getSetting("messagedelay").to!int;
+    }
+  }
+}
+
 void initCurses()
 {
   ncursesColourPair[ColourPairs] colourSetting = neon;
@@ -406,7 +436,7 @@ void initCurses()
     }
   }
 
-
+  initMessageWaitDuration;
   initscr;
   start_color;
   initCursesColors(colourSetting);
