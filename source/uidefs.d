@@ -104,11 +104,11 @@ void initCursesColors(in ref ncursesColourPair[ColourPairs] _pairs)
     }
 }
 
-void writeStatusMessage(in string message)
+void writeStatusMessage(string message)
 {
   clearStatusMessage;
   wattron(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
-  mvwprintw(statusWindow,0,0,message.toStringz);
+  mvwprintw(statusWindow,0,0,leftJustifier(message, COLS, ' ').to!string.toStringz);
   wrefresh(statusWindow);
   wattroff(statusWindow, COLOR_PAIR(ColourPairs.StatusBar));
 }
