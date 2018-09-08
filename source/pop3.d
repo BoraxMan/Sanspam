@@ -107,15 +107,18 @@ public:
   {
     string loginQuery = "USER "~username;
     auto x = query(loginQuery);
-    if (x.status == MessageStatus.BAD)
-      return false;
+    if (x.status == MessageStatus.BAD || x.status == MessageStatus.INCOMPLETE) {
+      m_connected = false;
+      throw new SanspamException("Failed to connect", x.contents~" : Incorrect username or password");
+    }
 
     loginQuery = "PASS "~password;
     x = query(loginQuery);
-    if (x.status == MessageStatus.BAD) {
+    if (x.status == MessageStatus.BAD || x.status == MessageStatus.INCOMPLETE) {
       m_connected = false;
-      return false;
+      throw new SanspamException("Failed to connect", x.contents~" : Incorrect username or password");
     }
+
     m_connected = true;
     getNumberOfMessages;
     getCapabilities;
