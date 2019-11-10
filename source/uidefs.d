@@ -26,7 +26,7 @@ import std.conv;
 import std.string;
 import std.typecons;
 
-__gshared string _version = "0.1.3";
+__gshared string _version = "0.1.4";
 __gshared const int SIGWINCH = 28;
 __gshared int messageWaitDuration = 1000;
 __gshared bool termResized = false;
@@ -116,7 +116,8 @@ void writeStatusMessage(string message)
 void createStatusWindow()
 {
   statusWindow = newwin(1,COLS,LINES-1,0);
-  wbkgd(statusWindow, A_NORMAL|ColourPairs.StatusBar);
+  wbkgd(statusWindow,  ' '.to!chtype|COLOR_PAIR(ColourPairs.StatusBar));
+
 }
     
 void clearStatusMessage()
@@ -137,7 +138,8 @@ WINDOW* create_newwin(int height, int width, int starty, int startx, ColourPairs
     box(local_win, A_NORMAL , A_NORMAL);
     wattroff(local_win, COLOR_PAIR(border));
   }
-  wbkgd(local_win, COLOR_PAIR(text));
+
+  wbkgd(local_win, ' '.to!chtype|COLOR_PAIR(text));
   if (title != "") {
     wattron(local_win, A_BOLD);
     mvwprintw(local_win, 0,cast(int)((width/2)-(title.length/2)), "%s", title.toStringz);
