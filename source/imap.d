@@ -28,6 +28,7 @@ import std.regex;
 import std.exception;
 import std.range;
 import buffer;
+
 import imapparse;
 import socket;
 import mailprotocol;
@@ -211,7 +212,7 @@ public:
       return true;  // Nothing more to do, if no messages.
     }
     
-    messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" BODY[HEADER]";
+    messageQuery = "FETCH 1:"~m_mailboxSize.to!string~" BODY.PEEK[HEADER]";
     response = query(messageQuery, Yes.multiline);
     
     if (response.status == MessageStatus.BAD) {
@@ -237,12 +238,27 @@ public:
     foreach(u; splitUIDs) {
       uids~=parseUID(u);
     }
+    flaglist flags;
 
     int counter = 1;
     foreach(enumerator,message; splitEmails.enumerate(0))
       {
 	Message m;
 	m = pmd.messageFactory(message);
+
+	messageQuery = "FETCH "~counter.to!string~" FLAGS";
+	response = query(messageQuery, No.multiline);
+	if (response.status == MessageStatus.BAD) {
+	  throw new SanspamException("Read Error", "Failed to download FLAGS.");
+	}
+	flags = getFlags(response.contents);
+	if (canFind(flags, "Seen")) {
+	    m.isRead = true;
+	} else {
+	    m.isRead = false;
+	}
+
+	flags.length = 0;
 	m.number = counter++;
 	m_messages.add(m);
 	if (m_supportUID) {

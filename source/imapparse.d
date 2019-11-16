@@ -76,6 +76,25 @@ flaglist parse_flag_list(in string response) @safe pure
   return flags[1..$];  // First flag is empty
 }
 
+flaglist getFlags(in string response) @safe
+{
+  flaglist flags;
+   foreach(line; lineSplitter(response)) {
+     if (line.startsWith("*")) {
+       size_t closepos;
+       auto result = matchFirst(line, regex(r"\(.+\)"));
+       if (result.length == 0) {
+	 continue;
+
+       }
+       auto mailboxFlags = result.hit[1..$-2]; // 1..$-1 is to remove the two parenthesis.
+       flags ~= parse_flag_list(mailboxFlags);
+     }
+   }
+   
+   return flags;
+
+}
 
 FolderList parseFolderList(in string response) @safe
  {
@@ -110,10 +129,9 @@ FolderList parseFolderList(in string response) @safe
 unittest {
   size_t pos;
   assert(parseUID("TEST (UID 444) STUFF") == "444");
-  auto flags = parse_flag_list("\\Answered \\Flagged \\Deleted \\Seen \\Draft NonJunk");
+  auto flags = getFlags("* 2  FETCH (FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft NonJunk))");
 
   assert(parseUID("NULL") == "");
-
   assert(canFind(flags,"Answered") == true);
   assert(canFind(flags,"Flagged") == true);
   assert(canFind(flags,"Deleted") == true);

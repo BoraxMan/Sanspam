@@ -81,6 +81,7 @@ private:
   bool m_bounce = false;
   bool m_isSpam = false; // Innocent until proven guilty.
   bool m_loaded = false;
+  bool m_isRead = false;
   uint m_messageNum; // The message number as per the server.  For POP
                         // servers this starts at 1 and is incremented.
   
@@ -145,6 +146,16 @@ public:
   {
     m_deleted = d;
   }
+
+  @property void isRead(in bool d) @safe pure nothrow
+  {
+    m_isRead = d;
+  }
+
+  @property bool isRead() @safe const pure nothrow
+  {
+    return m_isRead;
+  }
   
   @property string uidl() @safe const pure nothrow
   {
@@ -160,7 +171,7 @@ public:
   {
     return m_subject;
   }
-  
+ 
   @property string to() @safe const pure nothrow
   {
     return m_to;

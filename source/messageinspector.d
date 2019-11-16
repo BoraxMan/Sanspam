@@ -23,6 +23,7 @@ import deimos.ncurses.menu;
 import std.net.isemail;
 import std.string;
 import std.typecons;
+import std.conv;
 import uidefs;
 import message;
 
@@ -76,6 +77,7 @@ struct messageInspector
     printMessageInspectorItem("Date : ", m_message.date);
     printMessageInspectorItem("To : ", m_message.to);
     printMessageInspectorItem("From : ", m_message.from);
+    printMessageInspectorItem("Read : ", m_message.isRead.to!string);
 
     wmove(inspectorWindow, ++row, dataColumn);
 
