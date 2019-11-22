@@ -14,7 +14,7 @@
     },
 
     "description": "Simple mailbox cleaning tool.",
-    "copyright": "Copyright © 2017x, Dennis Katsonis",
+    "copyright": "Copyright © 2017, Dennis Katsonis",
     "license": "GPL v2",
     "libs-posix": [":libssl.so.1.0.2o", ":libcrypto.so.1.0.2o"],
 }
