@@ -22,6 +22,8 @@ import std.exception;
 import std.string;
 import deimos.ncurses;
 import deimos.ncurses.menu;
+import std.conv;
+import std.typecons;
 import uidefs;
 
 import sanspamexception;
@@ -41,6 +43,7 @@ public:
   {
     WINDOW *exceptionDisplay;
     exceptionDisplay = create_newwin(LINES-7,COLS-2,3,1,ColourPairs.MainBorder, ColourPairs.MainTitleText,"Sanspam has encountered a problem.");
+    wbkgd(exceptionDisplay, ' '.to!chtype|COLOR_PAIR(ColourPairs.StandardText));
     
     wattron(exceptionDisplay, COLOR_PAIR(ColourPairs.StandardText));
     wattron(exceptionDisplay, A_BOLD);

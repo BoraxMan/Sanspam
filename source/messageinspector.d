@@ -34,6 +34,14 @@ struct messageInspector
   immutable int dataColumn = 14;
   int row;
   EmailStatus emailStatus;
+
+  string getReadStatusString(bool status)
+  {
+    if (status) {
+      return "Read";
+    }
+    return "Unread";
+  }
   
   void printMessageInspectorItem(in string label, in string data)
   {
@@ -77,7 +85,7 @@ struct messageInspector
     printMessageInspectorItem("Date : ", m_message.date);
     printMessageInspectorItem("To : ", m_message.to);
     printMessageInspectorItem("From : ", m_message.from);
-    printMessageInspectorItem("Read : ", m_message.isRead.to!string);
+    printMessageInspectorItem("Status : ", getReadStatusString(m_message.isRead));
 
     wmove(inspectorWindow, ++row, dataColumn);
 

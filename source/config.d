@@ -170,20 +170,18 @@ size_t readConf(ref File file)
 /*******
  * This reads a line of text, and add the option to 
  * 'currentConfig'.  This function is used internally by config.d
- * for setting up all the configuraiton objects.
+ * for setting up all the configuration objects.
  *
  */
 void processLine(in char[] item)
 {
   string key;
   string value;
-  string text = item.to!string;
 
   try {
-    text.formattedRead("%s = %s", &key, &value);
+    item.to!string.formattedRead("%s = %s", &key, &value);
   } catch (Exception e) {
-    writeln("Invalid configuration line", e.msg~"Offending string is : "~item);
-    return;
+    throw new SanspamException("Invalid configuration line",e.msg~"Offending string is : "~item.to!string);
   }
   if (currentConfig is null) {
     throw new SanspamException("Configuration line doesn't belong to an account.",item.to!string);
@@ -205,7 +203,7 @@ private:
   string m_configTitle;
 
 public:
-  /// The configuraiton object title.
+  /// The configuration object title.
   final @property string title() const @safe nothrow pure
   {
     return m_configTitle;
