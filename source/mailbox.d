@@ -59,23 +59,15 @@ private:
   Config m_config;
   Protocol m_protocol;
   
-  
 public:
 
+  auto opDispatch(string name, T...)(T vals) {
+    return mixin("m_connection." ~ name)(vals);
+    }
   
   @property Protocol protocol()
   {
     return m_protocol;
-  }
-
-  @property size_t size()
-  {
-    return m_connection.m_messages.length;
-  }
-
-  @property final ref Messages messages() pure
-  {
-    return this.m_connection.messages();
   }
 
     auto opApply(int delegate(ref Message) operations) {
@@ -104,7 +96,7 @@ public:
 	}
       }
     
-    auto targetMessage = messages.find!(a => a.number == count).front;
+    auto targetMessage = m_connection.messages.find!(a => a.number == count).front;
 
     string recipient = targetMessage.returnPath.cleanEmailAddress;
 
@@ -186,29 +178,12 @@ public:
     }
     return true;
   }
-  
-  final bool remove(in string uidl)
-  {
-    return m_connection.remove(uidl);
-  }
-  
-  
   /* We DON'T call QUIT on the pop server when the destructor is called,
      as it may be called due to an exception.  We assume the user only
      wants to delete for sure.
   */
 
 
-  void loadMessages()
-  {
-    m_connection.loadMessages;
-  }
-  
-  FolderList folderList() @safe
-  {
-    return m_connection.folderList;
-  }
-  
   final bool login()
   {
     auto username = m_config.getSetting("username");

@@ -139,7 +139,7 @@ try {
   
   if (mailbox.protocol == Protocol.IMAP)
     {
-      FolderList folderList = mailbox.folderList;
+      FolderList folderList = mailbox.folderList();
       foreach(a;folderList)
 	{
 	  if (a.name == "INBOX") {

@@ -179,7 +179,8 @@ void processLine(in char[] item)
   string value;
 
   try {
-    item.to!string.formattedRead("%s = %s", &key, &value);
+    auto result = to!string(item);
+    result.formattedRead("%s = %s", &key, &value);
   } catch (Exception e) {
     throw new SanspamException("Invalid configuration line",e.msg~"Offending string is : "~item.to!string);
   }

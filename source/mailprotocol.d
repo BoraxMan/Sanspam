@@ -159,7 +159,10 @@ class MailProtocol
 public:
   abstract bool login(in string username, in string password) @safe;
   abstract string getUID(in int messageNumber) @safe;
-  abstract FolderList folderList() @safe;
+  FolderList folderList() @safe
+  {
+    return m_folderList;
+  }
   abstract bool loadMessages() @safe;
   abstract void selectFolder(ref Folder folder) @safe;
   abstract queryResponse query(in string command, Flag!"multiline" multiline = No.multiline) @safe;
