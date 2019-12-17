@@ -62,6 +62,7 @@ unittest {
   assert(cleanEmailAddress("Recipient <test@test.com>") == "test@test.com");
   assert(cleanEmailAddress("<test@test2.com.au> Recipient") == "test@test2.com.au");
   assert(cleanEmailAddress("test@test.com") == "test@test.com");
+  assert(cleanEmailAddress("Recipient <test@test2.com.au> Recipient") == "test@test2.com.au");
   assert(cleanEmailAddress("<test@test.com>") == "test@test.com");
 }
 
@@ -194,9 +195,7 @@ public:
 
   @property string received() @safe const pure
   {
-    string returnString;
-    returnString = tr(m_received, ";", "\n");
-    return returnString;
+    return tr(m_received, ";", "\n");
   }
 
   @property string message_id() @safe const pure nothrow

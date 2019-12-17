@@ -94,14 +94,20 @@ body
     return cast(T)(parse!int(input,16));
   }
 
-string base64Decode(ref string text) pure
+string base64Encode(string text) pure @trusted
+{
+  string output;
+  return Base64.encode(cast(ubyte[])text);
+}
+
+string base64Decode(string text) pure
 {
 
   string output;
   ubyte[] array = cast(ubyte[])text;
   auto decoded = Base64.decode(array);
   //text = "";
-  foreach(ref x; decoded) {
+  foreach(x; decoded) {
     // Rebuild text as decoded characters;
     output~=x;
   }

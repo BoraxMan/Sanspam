@@ -137,6 +137,7 @@ public:
   {
     return m_folderList;
   }
+  
 
 
   final bounceMessage(in string recipient, in string domain, in string message)

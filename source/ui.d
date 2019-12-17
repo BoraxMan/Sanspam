@@ -42,6 +42,9 @@ import mailbox;
 import mailprotocol;
 import uidefs;
 
+enum aboutWindowWidth = 70;
+enum licenseWindowWidth = 72;
+
 
 void mailboxViewHelp()
 {
@@ -322,7 +325,6 @@ void mainWindow()
 void showAbout()
 {
   WINDOW *aboutWindow = null;
-  immutable int aboutWindowWidth = 70;
   string[] aboutText =  [
 			 "SANSPAM, by Dennis Katsonis, 2018",
 			 "Version : "~_version,
@@ -357,7 +359,6 @@ void showAbout()
 void showLicence()
 {
   WINDOW *licenseWindow = null;
-  immutable int licenseWindowWidth = 72;
   string[] licenseText =  [
 			   "Copyright Dennis Katsonis, 2018",
 			   "",

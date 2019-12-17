@@ -27,11 +27,12 @@ import std.conv;
 import uidefs;
 import message;
 
+enum titleColumn = 1;
+enum dataColumn = 14;
+
 struct messageInspector
 {
   const Message *m_message;
-  immutable int titleColumn = 1;
-  immutable int dataColumn = 14;
   int row;
   EmailStatus emailStatus;
 
@@ -86,6 +87,8 @@ struct messageInspector
     printMessageInspectorItem("To : ", m_message.to);
     printMessageInspectorItem("From : ", m_message.from);
     printMessageInspectorItem("Status : ", getReadStatusString(m_message.isRead));
+    printMessageInspectorItem("Bounce : ", m_message.bounce.to!string);
+    printMessageInspectorItem("Delete : ", m_message.deleted.to!string);
 
     wmove(inspectorWindow, ++row, dataColumn);
 
