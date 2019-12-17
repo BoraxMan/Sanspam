@@ -24,6 +24,7 @@ import std.string;
 import std.format;
 import std.net.isemail;
 import std.algorithm;
+import std.typecons;
 import sanspamexception;
 import processline;
 import message;
@@ -85,9 +86,9 @@ public:
   bool bounceMessage(in int count)
   {
     SMTP smtp;
-    string domain;
-    string smtp_server;
-    string smtp_authtype;
+    configstring domain;
+    configstring smtp_server;
+    configstring smtp_authtype;
     ushort smtp_port;
     
     scope(failure)
@@ -126,8 +127,8 @@ public:
     }
 
     smtp_server = m_config.getSetting("smtp");
-    smtp_authtype = m_config.getSetting("smtp_authtype");
-    smtp_port = m_config.getSetting("smtp_port").to!ushort;
+    smtp_authtype = m_config.getSetting("smtp_authtype", No.mandatory);
+    smtp_port = m_config.getSetting("smtp_port").get.to!ushort;
     smtp = new SMTP(smtp_server,smtp_port, smtp_authtype);
     smtp.login(m_config.getSetting("username"),m_config.getSetting("password"));
     auto message = appender!string();
@@ -150,7 +151,7 @@ public:
   final this(in string mboxName) @safe
   {
     m_config = getConfig(mboxName);
-    auto port = m_config.getSetting("port").to!ushort;
+    auto port = m_config.getSetting("port").get.to!ushort;
     auto type = m_config.getSetting("type");
     if (type.toLower == "pop") {
       auto server = m_config.getSetting("pop");
@@ -189,7 +190,7 @@ public:
   final bool login()
   {
     auto username = m_config.getSetting("username");
-    string password;
+    configstring password;
     if (m_config.hasSetting("password")) {
       password = m_config.getSetting("password");
     } else {

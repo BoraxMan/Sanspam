@@ -103,7 +103,7 @@ public:
   }
 
   
-  override final bool login(in string username, in string password) @safe
+  override final bool login(in configstring username, in configstring password) @safe
   {
     string loginQuery = "USER "~username;
     auto x = query(loginQuery);

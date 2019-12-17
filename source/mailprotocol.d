@@ -157,7 +157,7 @@ class MailProtocol
 
 
 public:
-  abstract bool login(in string username, in string password) @safe;
+  abstract bool login(in configstring username, in configstring password) @safe;
   abstract string getUID(in int messageNumber) @safe;
   FolderList folderList() @safe
   {

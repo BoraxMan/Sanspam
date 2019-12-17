@@ -42,6 +42,9 @@ import std.stdio;
 import std.typecons;
 import std.uni : toLower;
 
+alias configstring = Nullable!(string,"");
+
+
 string separator = "=";
 string filename = "accounts.conf";
 
@@ -187,7 +190,8 @@ void processLine(in char[] item)
   if (currentConfig is null) {
     throw new SanspamException("Configuration line doesn't belong to an account.",item.to!string);
   }
-  currentConfig.modify(key.toLower, value);
+  configstring x = value;
+  currentConfig.modify(key.toLower, x);
 }
 /****
  * Class containing configuration objects.
@@ -200,7 +204,7 @@ void processLine(in char[] item)
 class Config
 {
 private:
-  string[string] m_configOption;
+  configstring[string] m_configOption;
   string m_configTitle;
 
 public:
@@ -226,10 +230,10 @@ public:
    * If value is "", then delete.
    * A key can be deleted by setting the value to an empty string. */
   
-  final void modify(string key, string value = "") @safe nothrow
+  final void modify(string key, configstring value) nothrow
   {
     
-    if (value.length == 0) {
+    if (value.isNull) {
       if (key in m_configOption) {
 	m_configOption.remove(key);
       } else {
@@ -245,7 +249,7 @@ public:
    */
   final bool hasSetting(in string key) const @safe nothrow pure
   {
-    const string *p = (key in m_configOption);
+    const configstring *p = (key in m_configOption);
     if (p !is null) {
       return true;
     } else {
@@ -256,19 +260,22 @@ public:
   /****
    * Returns the value of configuraiton option 'key'.
    * 
-   * Throws an exception if 'key' does not exist.
+   * Throws an exception if 'key' does not exist, if mandatory.
+   *
+   * If the value is not mandatory, it returns null.
    */
   
-  final string getSetting(in string key, bool mandatory = true) const @safe
+  final configstring getSetting(in string key, Flag!"mandatory" mandatory = Yes.mandatory) const @safe
   {
     if(hasSetting(key)) {
       return m_configOption[key];
-    } else if(mandatory) {
+    } else if(mandatory == Yes.mandatory) {
       // If mandatory, throw exception;
       throw new SanspamException("Setting doesn't exist", "Missing setting is \""~key~"\"");
     } else {
-      // Otherwise, return empty string;
-      return "";
+      // Otherwise, return null configstring;
+      configstring emp;
+      return emp;
     }
   }
  

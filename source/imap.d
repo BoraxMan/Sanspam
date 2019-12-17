@@ -28,7 +28,7 @@ import std.regex;
 import std.exception;
 import std.range;
 import buffer;
-
+import config;
 import imapparse;
 import socket;
 import mailprotocol;
@@ -120,7 +120,7 @@ public:
     }
   }
 
-  override final bool login(in string username, in string password) @safe
+  override final bool login(in configstring username, in configstring password) @safe
   {
     auto x = query("LOGIN "~username~" "~password,No.multiline);
     if (x.status == MessageStatus.BAD || x.status == MessageStatus.INCOMPLETE) {

@@ -64,30 +64,32 @@ public:
   this() {}
 
 
-  final this(in string server, in ushort port, in string smtp_authtype) @safe
+  final this(in configstring server, in ushort port, in configstring smtp_authtype) @safe
   {
     m_socket = new MailSocket(server, port);
     immutable auto b = m_socket.receive.bufferToString;
     if(!evaluateMessage(b)) {
       throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
-    
-    switch (smtp_authtype.toLower)
-      {
-      case "none":
-	authenticationMethod = SMTP_Authentication.None;
-	break;
-      case "login":
-	authenticationMethod = SMTP_Authentication.Login;
-	break;
-      case "cram-md5":
-	authenticationMethod = SMTP_Authentication.CRAM_MD5;
-	break;
-      default:
-	authenticationMethod = SMTP_Authentication.None;
-	break;
+
+    if (!smtp_authtype.isNull)
+      {  //  Only determine if an authtype option was defined.
+	switch (smtp_authtype.get.toLower)
+	  {
+	  case "none":
+	    authenticationMethod = SMTP_Authentication.None;
+	    break;
+	  case "login":
+	    authenticationMethod = SMTP_Authentication.Login;
+	    break;
+	  case "cram-md5":
+	    authenticationMethod = SMTP_Authentication.CRAM_MD5;
+	    break;
+	  default:
+	    authenticationMethod = SMTP_Authentication.None;
+	    break;
+	  }
       }
-      
 	
   }
 
@@ -104,17 +106,17 @@ public:
     return "";
   }
 
-  override final bool login(in string username, in string password) @safe
+  override final bool login(in configstring username, in configstring password) @safe
   {
     queryResponse response;
     
-    string loginQuery = "HELO "~username;
+    string loginQuery = "HELO "~username.get;
     auto x = query(loginQuery);
     if (x.status == MessageStatus.BAD)
       return false;
 
     m_connected = true;
-
+    
     if (authenticationMethod == SMTP_Authentication.Login)
       {
 	loginQuery = "AUTH LOGIN";
@@ -123,15 +125,15 @@ public:
 	  throw new SanspamException("SMTP Message","Failed to login");
 	}
 
-	loginQuery = base64Encode(username);
+	loginQuery = base64Encode(username.get);
 	response = query(loginQuery);
 	if (response.status == MessageStatus.BAD) {
-	  throw new SanspamException("SMTP Message","Failed to login 2");
+	  throw new SanspamException("SMTP Message","Failed to login");
 	}
-	loginQuery = base64Encode(password);
+	loginQuery = base64Encode(password.get);
 	response = query(loginQuery);
 	if (response.status == MessageStatus.BAD) {
-	  throw new SanspamException("Password"~username,loginQuery);
+	  throw new SanspamException("SMTP Message","Failed to login");
 	}
 	return true;
       }
@@ -198,7 +200,7 @@ public:
     auto messageQuery = "MAIL FROM: <MAILER-DAEMON@"~domain~">";
     auto response = query(messageQuery);
     if (response.status == MessageStatus.BAD) {
-      throw new SanspamException("SMTP Message","Failed to send SMTP message 1");
+      throw new SanspamException("SMTP Message","Failed to send SMTP message");
     }
 
     messageQuery = "RCPT TO:"~recipient;
