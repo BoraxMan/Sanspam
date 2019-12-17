@@ -26,7 +26,7 @@ import std.conv;
 import std.string;
 import std.typecons;
 
-__gshared string _version = "0.1.5";
+__gshared string _version = "0.1.6";
 __gshared const int SIGWINCH = 28;
 __gshared int messageWaitDuration = 1000;
 __gshared bool termResized = false;

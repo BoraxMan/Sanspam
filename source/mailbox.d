@@ -87,6 +87,7 @@ public:
     SMTP smtp;
     string domain;
     string smtp_server;
+    string smtp_authtype;
     ushort smtp_port;
     
     scope(failure)
@@ -125,9 +126,10 @@ public:
     }
 
     smtp_server = m_config.getSetting("smtp");
+    smtp_authtype = m_config.getSetting("smtp_authtype");
     smtp_port = m_config.getSetting("smtp_port").to!ushort;
-    smtp = new SMTP(smtp_server,smtp_port);
-    smtp.login(m_config.getSetting("username"),"");
+    smtp = new SMTP(smtp_server,smtp_port, smtp_authtype);
+    smtp.login(m_config.getSetting("username"),m_config.getSetting("password"));
     auto message = appender!string();
     message.formattedWrite(bounceFormat,domain, targetMessage.to, targetMessage.to, domain, targetMessage.to, targetMessage.to);
     smtp.bounceMessage(recipient, domain, message.data);

@@ -219,7 +219,7 @@ public:
     m_bounce = n;
   }
 
-  @property bool bounce() @safe pure nothrow
+  @property bool bounce() @safe pure nothrow const
   {
     return m_bounce;
   }

@@ -259,12 +259,16 @@ public:
    * Throws an exception if 'key' does not exist.
    */
   
-  final string getSetting(in string key) const @safe
+  final string getSetting(in string key, bool mandatory = true) const @safe
   {
     if(hasSetting(key)) {
       return m_configOption[key];
-    } else {
+    } else if(mandatory) {
+      // If mandatory, throw exception;
       throw new SanspamException("Setting doesn't exist", "Missing setting is \""~key~"\"");
+    } else {
+      // Otherwise, return empty string;
+      return "";
     }
   }
  

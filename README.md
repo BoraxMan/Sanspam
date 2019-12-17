@@ -50,6 +50,9 @@ Valid options for mail accounts are
 * **type:** imap or pop
 	
 * **smtp_port:** The port number of the SMTP server (optional).
+
+* **smtp_auth:** The type of SMTP authentication.  Options are "none" or "login".
+
 	
 An example is below...
 
@@ -96,4 +99,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Version
 ---
-0.1.5
+0.1.6

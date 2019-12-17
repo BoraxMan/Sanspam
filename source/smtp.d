@@ -27,21 +27,33 @@ import socket;
 import buffer;
 import config;
 import message;
+import conversion;
 import mailprotocol;
 import sanspamexception;
 import processline;
 import exceptionhandler;
 
+string[] successCodes = ["220","250","354","221","334","235"];
+string[] failureCodes = ["5","503","504","501","432","534","538","454","530"];
+
+enum SMTP_Authentication
+  {
+   None,
+   Login,
+   CRAM_MD5
+  }
 
 class SMTP : MailProtocol
 {
+  SMTP_Authentication authenticationMethod = SMTP_Authentication.None;
+  
 private:
   bool evaluateMessage(immutable ref string message) const @safe
   {
     //  Whether there response is OK or ERROR.
-    if (message.startsWith("220") || message.startsWith("250") || message.startsWith("354") || message.startsWith("221")) {
+    if (message[0] == '2' || message[0] == '3') {
       return true;
-    } else if(message[0] == '5') {
+    } else if(message[0] == '5' || message[0] == '4') {
       return false;
     } else {
       throw new SanspamException("Malformed server response","Could not determine message success.");
@@ -52,13 +64,31 @@ public:
   this() {}
 
 
-  final this(in string server, in ushort port) @safe
+  final this(in string server, in ushort port, in string smtp_authtype) @safe
   {
     m_socket = new MailSocket(server, port);
     immutable auto b = m_socket.receive.bufferToString;
     if(!evaluateMessage(b)) {
       throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
+    
+    switch (smtp_authtype.toLower)
+      {
+      case "none":
+	authenticationMethod = SMTP_Authentication.None;
+	break;
+      case "login":
+	authenticationMethod = SMTP_Authentication.Login;
+	break;
+      case "cram-md5":
+	authenticationMethod = SMTP_Authentication.CRAM_MD5;
+	break;
+      default:
+	authenticationMethod = SMTP_Authentication.None;
+	break;
+      }
+      
+	
   }
 
   final ~this()
@@ -76,12 +106,35 @@ public:
 
   override final bool login(in string username, in string password) @safe
   {
+    queryResponse response;
+    
     string loginQuery = "HELO "~username;
     auto x = query(loginQuery);
     if (x.status == MessageStatus.BAD)
       return false;
 
     m_connected = true;
+
+    if (authenticationMethod == SMTP_Authentication.Login)
+      {
+	loginQuery = "AUTH LOGIN";
+	response = query(loginQuery);
+	if (response.status == MessageStatus.BAD) {
+	  throw new SanspamException("SMTP Message","Failed to login");
+	}
+
+	loginQuery = base64Encode(username);
+	response = query(loginQuery);
+	if (response.status == MessageStatus.BAD) {
+	  throw new SanspamException("SMTP Message","Failed to login 2");
+	}
+	loginQuery = base64Encode(password);
+	response = query(loginQuery);
+	if (response.status == MessageStatus.BAD) {
+	  throw new SanspamException("Password"~username,loginQuery);
+	}
+	return true;
+      }
     return false;
   }
   
