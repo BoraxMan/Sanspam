@@ -51,7 +51,7 @@ Valid options for mail accounts are
 	
 * **smtp_port:** The port number of the SMTP server (optional).
 
-* **smtp_auth:** The type of SMTP authentication.  Options are "none" or "login".
+* **smtp_authtype:** The type of SMTP authentication.  Options are "none" or "login".
 
 	
 An example is below...
