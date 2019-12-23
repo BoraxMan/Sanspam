@@ -150,7 +150,7 @@ class MailProtocol
   @ConfigOption @Encrypted string m_password;
 
   MailSocket m_socket;
-  immutable string endline = "\r\n";
+  string endline = "\r\n";
   char[defaultBufferSize] m_buffer;
   string[] m_capabilities;
   FolderList m_folderList;
@@ -175,7 +175,7 @@ public:
   
   final bool startTLS(EncryptionMethod method = EncryptionMethod.TLSv1_2) @trusted
   {
-    immutable string message = "STARTTLS";
+    string message = "STARTTLS";
     auto x = query(message);
     if (x.status == MessageStatus.BAD)
       return false;

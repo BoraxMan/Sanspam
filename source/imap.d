@@ -114,7 +114,7 @@ public:
       }
     }
 
-    immutable string b = m_socket.receive.bufferToString();
+    string b = m_socket.receive.bufferToString();
     if(!evaluateMessage(b,".")) {
       throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
@@ -189,7 +189,7 @@ public:
   final void getIMAPFolderList() @safe
   {
     queryResponse response;
-    immutable string thisQuery = "LIST \"\" \"%\"";
+    string thisQuery = "LIST \"\" \"%\"";
     response = query(thisQuery, No.multiline);
     if (response.status == MessageStatus.BAD) {
       return;

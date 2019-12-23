@@ -45,8 +45,8 @@ import std.uni : toLower;
 alias configstring = Nullable!(string,"");
 
 
-string separator = "=";
-string filename = "accounts.conf";
+enum separator = "=";
+enum filename = "accounts.conf";
 
 Config[string] configurations;
 Config currentConfig;
@@ -112,7 +112,7 @@ bool configExists(in string configTitle) @safe nothrow
 size_t writeConf() @safe
 {
   // Returns the number of configuration objects written.
-  immutable string tempFile = filename~".bak";
+  string tempFile = filename~".bak";
   if (configurations.length == 0) {
     return 0;
   }

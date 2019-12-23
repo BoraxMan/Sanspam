@@ -201,7 +201,7 @@ try {
 
     post_menu(messageMenu);
     int accountx, accounty;
-    string footer;
+    char[] footer;
     getmaxyx(accountEditWindow,accounty, accountx);
     wmove(accountEditWindow,accounty,1);
     if (mailbox.size == 0) {

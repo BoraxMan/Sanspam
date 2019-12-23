@@ -48,7 +48,7 @@ class SMTP : MailProtocol
   SMTP_Authentication authenticationMethod = SMTP_Authentication.None;
   
 private:
-  bool evaluateMessage(immutable ref string message) const @safe
+  bool evaluateMessage(ref string message) const @safe
   {
     //  Whether there response is OK or ERROR.
     if (message[0] == '2' || message[0] == '3') {
@@ -67,7 +67,7 @@ public:
   final this(in configstring server, in ushort port, in configstring smtp_authtype) @safe
   {
     m_socket = new MailSocket(server, port);
-    immutable auto b = m_socket.receive.bufferToString;
+    auto b = m_socket.receive.bufferToString;
     if(!evaluateMessage(b)) {
       throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
@@ -144,7 +144,7 @@ public:
   {
     queryResponse response;
     m_socket.send(command~endline);
-    immutable string message = m_socket.receive().bufferToString;
+    string message = m_socket.receive().bufferToString;
 
     // Evaluate response.
     immutable bool isOK = evaluateMessage(message);

@@ -26,13 +26,13 @@ import std.base64;
 import std.encoding;
 import sanspamexception;
 
-immutable string utfSeqStart = "=?";
-immutable string utfSeqEnd = "?=";
-immutable string space = hexString!"20";
+enum utfSeqStart = "=?";
+enum utfSeqEnd = "?=";
+enum space = hexString!"20";
 
-immutable string encodingLabelUTF8 = "utf-8";
-immutable string encodingLabelISO_8859_1 = "iso-8859-1";
-immutable string encodingLabelISO_8859_2 = "iso-8859-2";
+enum encodingLabelUTF8 = "utf-8";
+enum encodingLabelISO_8859_1 = "iso-8859-1";
+enum encodingLabelISO_8859_2 = "iso-8859-2";
 
 alias textEncodingType = Tuple!(charsetType, "charset", encodingType, "encoding", ptrdiff_t, "encodeHeaderLength");
 // encodeHeaderLength is where the encoding information ends, and the encoded text starts.
@@ -114,7 +114,7 @@ string base64Decode(string text) pure
   return output;
 }
 
-string decodeText(string text)
+string decodeText(string text) 
 {
   string output;
   int index;
@@ -159,11 +159,11 @@ string decodeUTF8(T)(string text)
 	throw new SanspamException("Message format error","Incomplete code");
       }
       static if(is(T == string)) {
-	immutable string hchars = text[index+1..index+3];
+	string hchars = text[index+1..index+3];
 	decodedText~=hextoChar!char(hchars);
       }
       static if (is(T == Latin1String)) {
-	immutable string hchars = text[index+1..index+3].to!string;
+	string hchars = text[index+1..index+3].to!string;
 	decodedText~=hextoChar!Latin1Char(hchars);
       }
       /* Some earlier compilers may not support Latin2String.
@@ -171,7 +171,7 @@ string decodeUTF8(T)(string text)
       
       static if (is(Latin2String)) {
 	static if (is(T == Latin2String)) {
-	  immutable string hchars = text[index+1..index+3].to!string;
+	  string hchars = text[index+1..index+3].to!string;
 	  decodedText~=hextoChar!Latin2Char(hchars);
  	}
 	

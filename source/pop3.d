@@ -65,7 +65,7 @@ public:
     if (port == 995) {
       m_socket.startSSL;
     }
-    immutable auto b = m_socket.receive.bufferToString();
+    auto b = m_socket.receive.bufferToString();
     if(evaluateMessage(b, No.multiline) == MessageStatus.BAD) {
       throw new SanspamException("Cannot create socket","Could not create connection with server.");
     }
@@ -82,11 +82,11 @@ public:
   override final string getUID(in int messageNumber) @safe
   {
     string UIDquery = "UIDL "~messageNumber.to!string;
-    immutable auto UIDresponse = query(UIDquery);
+    auto UIDresponse = query(UIDquery);
     if (UIDresponse.status == MessageStatus.BAD) {
       throw new SanspamException("POP3 transfer failure", "Failed to execute query "~UIDquery);
     } else {
-      immutable auto results = UIDresponse.contents.split;
+      auto results = UIDresponse.contents.split;
       return results[1];
     }
 
@@ -94,10 +94,10 @@ public:
 
   final void getCapabilities() @safe
   {
-    immutable auto response = query(getQueryFormat(Command.Capability));
+    auto response = query(getQueryFormat(Command.Capability));
     if (response.status == MessageStatus.BAD)
       return;
-    immutable auto results = split(response.contents.toUpper);
+    auto results = split(response.contents.toUpper);
     if (find(results, "UIDL").length) m_supportUID = true;
     if (find(results, "TOP").length) m_supportTOP = true;
   }
