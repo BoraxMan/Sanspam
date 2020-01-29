@@ -20,6 +20,7 @@
 
 import unfoldtext;
 import message;
+import sanspamexception;
 import std.conv;
 import std.string;
 import std.algorithm;
@@ -58,8 +59,12 @@ private:
     foreach(ref x; range) {
       // If we find it, the next line is to process text and insert it somewhere.
       // But we can't have found it before, unless it is a repeatable type.
-      if (text.toLower.startsWith(messageParts[x].label) && (messageParts[x].label.length > 1)) {
-	return x;
+      try {
+	if (text.toLower.startsWith(messageParts[x].label) && (messageParts[x].label.length > 1)) {
+	  return x;
+	}
+      } catch (Exception e) {
+	throw new SanspamException("Could not convert", e.msg);
       }
     }
     // If we didn't find it, don't change a thing.

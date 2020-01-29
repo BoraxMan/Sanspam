@@ -153,8 +153,7 @@ size_t readConf(ref File file)
 	if(currentConfig !is null) {
 	  configurations[currentConfig.title]=currentConfig;
 	}
-	item = item.chomp("]");
-	item = item.chompPrefix("[");
+	item = item[1..$-1];
 	currentConfig = new Config(item);
       } else {
 	processLine(item);

@@ -105,7 +105,12 @@ string base64Decode(string text) pure
 
   string output;
   ubyte[] array = cast(ubyte[])text;
-  auto decoded = Base64.decode(array);
+  ubyte[] decoded;
+  try {
+    decoded = Base64.decode(array);
+  } catch (Base64Exception e) {
+    throw new SanspamException("Error decoding character",e.msg);
+  }
   //text = "";
   foreach(x; decoded) {
     // Rebuild text as decoded characters;
@@ -122,7 +127,11 @@ string decodeText(string text)
   index += te.encodeHeaderLength;
   text = text[index..$];
   if (te.encoding == encodingType.BASE64) {
-    text = text.base64Decode;
+    try {
+      text = text.base64Decode;
+    } catch (Base64Exception e) {
+      throw new SanspamException("Error decoding character",e.msg);
+    }
   }
   
   if (te.charset == charsetType.UTF8) {
@@ -246,34 +255,42 @@ string convertText(string text)
   */
   
   int x;
-  while(x < text.length) {
-    if (x < (text.length - 2) && text.length >= 2) {
-      if (text[x..x+2] == utfSeqStart) {
-	// Found an atom.
-	x+=2;
-	int z = x;
-	// Find where the atom ends.
-	if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
-	  z+=encodingLabelUTF8.length+3;
-	} else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
-	  z+=encodingLabelISO_8859_1.length+3;
-	} else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
-	  z+=encodingLabelISO_8859_2.length+3;
-	} else z+=2;
-	
-	auto zend = countUntil(text[x..$], utfSeqEnd);
-	if (zend + x < z) {
-	  auto zend2 = countUntil(text[z..$], utfSeqEnd);
-	  zend = zend2 + (z-x);
-	  }
-	
-	output~= decodeText(text[x..(x+zend)]);
-	x+=zend+2;
-	continue;
+  if (text.length < 2) return output;
+  
+  while(x < (text.length - 2)) {
+    if (text[x..x+2] == utfSeqStart) {
+      // Found an atom.
+      x+=2;
+      int z = x;
+      // Find where the atom ends.
+      try
+	{
+	  if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
+	    z+=encodingLabelUTF8.length+3;
+	    // Adding 3 skips past the '=?' and the '?' at the end of the
+	    // encoding type descriptor.
+	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
+	    z+=encodingLabelISO_8859_1.length+3;
+	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
+	    z+=encodingLabelISO_8859_2.length+3;
+	  } else z+=2;
+	} catch (EncodingException e) {
+	throw new SanspamException("Could not convert UTF sequence",e.msg);
       }
-      output~=text[x++];
-    } else
-      output~=text[x++];
+      
+      auto zend = countUntil(text[x..$], utfSeqEnd);
+
+      /*
+      if (zend + x < z) {
+	auto zend2 = countUntil(text[z..$], utfSeqEnd);
+	zend = zend2 + (z-x);
+	}
+      */
+      output~= decodeText(text[x..(x+zend)]);
+      x+=zend+2;
+      continue;
+    }
+    output~=text[x++];
   }
   return output;
 }
@@ -300,5 +317,7 @@ unittest
   assert(getTextEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
   assert(getTextEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
   assert(convertText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=") == "Subject: If you can read this yo");
-
+  assert(convertText("=?UTF-8?B?QUJDIFN0b3JlOiBOZXcgT3JkZXI=?=") == "ABC Store: New Order");
+	
 }
+
