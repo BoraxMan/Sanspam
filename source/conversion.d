@@ -257,7 +257,7 @@ string convertText(string text)
   int x;
   if (text.length < 2) return output;
   
-  while(x < (text.length - 2)) {
+  while(x < text.length) {
     if (text[x..x+2] == utfSeqStart) {
       // Found an atom.
       x+=2;
