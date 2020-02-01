@@ -1,7 +1,7 @@
 This program is written in the D language.
 
-To build, you need a D compiler (DMD and ldc2 have been verified to work) and the DUB
-package manager which comes with the DMD compiler.
+To build, you need a D compiler (DMD, gdc and ldc2 have been verified to work)
+and the DUB package manager which comes with the DMD compiler.
 
 To build, simply run
 
@@ -9,5 +9,5 @@ dub build -b=release --compiler=ldc2
 
 (You can replace ldc2 with gdc or dmd if you wish).
 
-The copy the "sanspam" binary and you're good to go.
+The binary is placed within the 'bin' directory in the sanspam directory.
 
