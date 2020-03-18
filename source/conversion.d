@@ -125,6 +125,7 @@ string decodeText(string text)
   int index;
   immutable textEncodingType te = getTextEncodingType(text);
   index += te.encodeHeaderLength;
+  assert(index <= text.length);
   text = text[index..$];
   if (te.encoding == encodingType.BASE64) {
     try {
@@ -255,9 +256,10 @@ string convertText(string text)
   */
   
   int x;
+  size_t encodingLabelLength;
   if (text.length < 2) return output;
   
-  while(x < text.length) {
+  while(x < (text.length -2)) {
     if (text[x..x+2] == utfSeqStart) {
       // Found an atom.
       x+=2;
@@ -266,28 +268,28 @@ string convertText(string text)
       try
 	{
 	  if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
-	    z+=encodingLabelUTF8.length+3;
+	    encodingLabelLength = encodingLabelUTF8.length+3;
 	    // Adding 3 skips past the '=?' and the '?' at the end of the
 	    // encoding type descriptor.
 	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
-	    z+=encodingLabelISO_8859_1.length+3;
+	    encodingLabelLength = encodingLabelISO_8859_1.length+3;
 	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
-	    z+=encodingLabelISO_8859_2.length+3;
-	  } else z+=2;
+	    encodingLabelLength = encodingLabelISO_8859_2.length+3;
+	  } else encodingLabelLength = 2;
 	} catch (EncodingException e) {
 	throw new SanspamException("Could not convert UTF sequence",e.msg);
       }
-      
-      auto zend = countUntil(text[x..$], utfSeqEnd);
+      z += encodingLabelLength;
 
-      /*
-      if (zend + x < z) {
-	auto zend2 = countUntil(text[z..$], utfSeqEnd);
-	zend = zend2 + (z-x);
-	}
-      */
+      auto zend = countUntil(text[z..$], utfSeqEnd);
+      if (zend == -1) {
+	throw new SanspamException("Invalid UTF sequence", text[x..$]);
+      }
+
+      zend += encodingLabelLength;
+
       output~= decodeText(text[x..(x+zend)]);
-      x+=zend+2;
+      x+=zend+utfSeqEnd.length;
       continue;
     }
     output~=text[x++];
@@ -316,8 +318,9 @@ unittest
 
   assert(getTextEncodingType("uTF-8?B?stuff").charset == charsetType.UTF8);
   assert(getTextEncodingType("uTF-8?B?stuff").encoding == encodingType.BASE64);
+  assert(convertText("=?utf-8?Q?hello?=") == "hello");
   assert(convertText("Subject: =?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=") == "Subject: If you can read this yo");
   assert(convertText("=?UTF-8?B?QUJDIFN0b3JlOiBOZXcgT3JkZXI=?=") == "ABC Store: New Order");
-	
+  assert(convertText("=?UtF-8?Q?=F0=9F=98=A1British_politicians_=27cover?= =?utf-8?Q?ed_up_child_abuse_for_decades=27?=") == "😡British politicians 'cover ed up child abuse for decades'");
 }
 
