@@ -259,38 +259,40 @@ string convertText(string text)
   size_t encodingLabelLength;
   if (text.length < 2) return output;
   
-  while(x < (text.length -2)) {
-    if (text[x..x+2] == utfSeqStart) {
-      // Found an atom.
-      x+=2;
-      int z = x;
-      // Find where the atom ends.
-      try
-	{
-	  if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
-	    encodingLabelLength = encodingLabelUTF8.length+3;
-	    // Adding 3 skips past the '=?' and the '?' at the end of the
-	    // encoding type descriptor.
-	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
-	    encodingLabelLength = encodingLabelISO_8859_1.length+3;
-	  } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
-	    encodingLabelLength = encodingLabelISO_8859_2.length+3;
-	  } else encodingLabelLength = 2;
-	} catch (EncodingException e) {
-	throw new SanspamException("Could not convert UTF sequence",e.msg);
+  while(x < text.length) {
+    if (x < (text.length - 2)) {
+      if (text[x..x+2] == utfSeqStart) {
+	// Found an atom.
+	x+=2;
+	int z = x;
+	// Find where the atom ends.
+	try
+	  {
+	    if (text[x..$].toUpper.startsWith(encodingLabelUTF8.toUpper)) {
+	      encodingLabelLength = encodingLabelUTF8.length+3;
+	      // Adding 3 skips past the '=?' and the '?' at the end of the
+	      // encoding type descriptor.
+	    } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_1.toUpper)) {
+	      encodingLabelLength = encodingLabelISO_8859_1.length+3;
+	    } else if (text[x..$].toUpper.startsWith(encodingLabelISO_8859_2.toUpper)) {
+	      encodingLabelLength = encodingLabelISO_8859_2.length+3;
+	    } else encodingLabelLength = 2;
+	  } catch (EncodingException e) {
+	  throw new SanspamException("Could not convert UTF sequence",e.msg);
+	}
+	z += encodingLabelLength;
+	
+	auto zend = countUntil(text[z..$], utfSeqEnd);
+	if (zend == -1) {
+	  throw new SanspamException("Invalid UTF sequence", text[x..$]);
+	}
+	
+	zend += encodingLabelLength;
+	
+	output~= decodeText(text[x..(x+zend)]);
+	x+=zend+utfSeqEnd.length;
+	continue;
       }
-      z += encodingLabelLength;
-
-      auto zend = countUntil(text[z..$], utfSeqEnd);
-      if (zend == -1) {
-	throw new SanspamException("Invalid UTF sequence", text[x..$]);
-      }
-
-      zend += encodingLabelLength;
-
-      output~= decodeText(text[x..(x+zend)]);
-      x+=zend+utfSeqEnd.length;
-      continue;
     }
     output~=text[x++];
   }
