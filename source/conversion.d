@@ -195,13 +195,13 @@ string decodeUTF8(T)(string text)
       }
       static if(is(T == Latin1String)) {
 	T converted;
-	transcode(space, converted);
+	transcode(space.to!T, converted);
 	decodedText~=converted;
       }
       static if (is(Latin2String)) {
 	static if(is(T == Latin2String)) {
 	  T converted;
-	  transcode(space, converted);
+	  transcode(space.to!T, converted);
 	  decodedText~=converted;
 	}
       }

@@ -399,7 +399,7 @@ void initMessageWaitDuration()
   if (configExists("sanspam")) {
     m_config = getConfig("sanspam");
     if (m_config.hasSetting("messagedelay")) {
-      messageWaitDuration = m_config.getSetting("messagedelay").to!int;
+      messageWaitDuration = m_config.getSetting("messagedelay").get.to!int;
     }
   }
 }
